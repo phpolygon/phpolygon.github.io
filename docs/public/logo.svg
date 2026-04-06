@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <polygon points="64,8 120,36 120,92 64,120 8,92 8,36" fill="#4F46E5" stroke="#312E81" stroke-width="3"/>
+  <polygon points="64,24 104,44 104,84 64,104 24,84 24,44" fill="#6366F1" stroke="#4338CA" stroke-width="2"/>
+  <text x="64" y="72" text-anchor="middle" font-family="monospace" font-size="28" font-weight="bold" fill="white">PP</text>
+</svg>
