@@ -8,6 +8,7 @@
 - **Code-driven worlds** — geometry is generated procedurally, not imported from external tools
 - **AI-first authoring** — Claude Code generates and iterates on game content directly
 - **Backend-agnostic rendering** — game code builds a `RenderCommandList`; backends execute it
+- **Visual editor** — the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`) provides a NativePHP desktop app for visual scene editing
 
 ## Render Backends
 

@@ -2,7 +2,7 @@
 
 ## PHP-Canonical Model
 
-PHP is always the canonical source of truth for scene structure. JSON is the intermediate format for the editor.
+PHP is always the canonical source of truth for scene structure. JSON is the intermediate format for the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`).
 
 | Format | Purpose |
 |---|---|
