@@ -21,8 +21,11 @@ It is the first game built with PHPolygon and ships with the **2D renderer** (Op
 | **Distribution** | Steam |
 | **Authoring** | Claude Code |
 
+<a href="https://store.steampowered.com/app/4417500/Code_Tycoon_Demo/" target="_blank">
+  <img src="https://img.shields.io/badge/Steam-Play_the_Demo-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Play the Demo on Steam" />
+</a>&nbsp;
 <a href="https://store.steampowered.com/app/2667120/Code_Tycoon/" target="_blank">
-  <img src="https://img.shields.io/badge/Steam-Wishlist_on_Steam-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Wishlist on Steam" />
+  <img src="https://img.shields.io/badge/Steam-Wishlist-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Wishlist on Steam" />
 </a>
 
 ### Gameplay
