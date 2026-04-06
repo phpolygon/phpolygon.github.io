@@ -78,7 +78,15 @@ Custom shaders are compiled lazily on first use and cached for the session. Unkn
 
 ## Writing Custom Shaders
 
-Shaders are written in GLSL 4.10. Custom shaders must use the same vertex attribute layout as built-in shaders:
+Shaders are written in GLSL 4.10. The same GLSL source is used across all backends:
+
+| Backend | Shader pipeline |
+|---|---|
+| **OpenGL 4.1** | GLSL loaded and compiled at runtime via `glCreateShader` |
+| **Metal (macOS)** | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
+| **Vulkan** | GLSL compiled to SPIR-V at build time via `glslangValidator` |
+
+Custom shaders must use the same vertex attribute layout as built-in shaders:
 
 ### Required Vertex Attributes
 

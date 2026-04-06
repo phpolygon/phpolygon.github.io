@@ -9,9 +9,10 @@ Game Code / Scene
       ↓  (builds)
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
-┌──────────────────┬──────────────────┬──────────────────┐
-│ OpenGLRenderer3D │ VulkanRenderer3D │  NullRenderer3D  │
-└──────────────────┴──────────────────┴──────────────────┘
+┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+│ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
+│    (active)      │ (macOS/MoltenVK) │    (planned)     │ (headless/tests) │
+└──────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
 Game code never touches GPU APIs directly. The `Renderer3DSystem` collects `MeshRenderer` + `Transform3D` components and builds a `RenderCommandList` that the active backend executes.
@@ -20,9 +21,24 @@ Game code never touches GPU APIs directly. The `Renderer3DSystem` collects `Mesh
 
 ```
 RenderContextInterface           ← base: beginFrame, endFrame, clear, setViewport
-├── Renderer2DInterface          ← NanoVG backend for 2D games
-└── Renderer3DInterface          ← 3D backend (OpenGL or Vulkan)
+├── Renderer2DInterface          ← NanoVG backend for 2D games (production)
+└── Renderer3DInterface          ← 3D backend (OpenGL, Metal, or Vulkan)
 ```
+
+::: info
+The **2D renderer** (OpenGL/NanoVG) is production-ready — [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
+:::
+
+## 3D Render Backends
+
+| Backend | Class | Status | Notes |
+|---|---|---|---|
+| OpenGL 4.1 | `OpenGLRenderer3D` | In development | Primary 3D backend, all platforms |
+| Metal (MoltenVK) | `MetalRenderer3D` | In development | macOS-native via php-glfw's Metal support |
+| Vulkan | `VulkanRenderer3D` | Phase 8 | High-performance production backend |
+| Null | `NullRenderer3D` | Available | Headless/CI testing — stores commands for assertions |
+
+All 3D backends implement `Renderer3DInterface` and execute the same `RenderCommandList`. Game code is fully backend-agnostic.
 
 ## 3D Render Pipeline
 

@@ -13,7 +13,7 @@ $engine = new Engine(new EngineConfig(headless: true));
 |---|---|
 | `Window` (GLFW) | `NullWindow` (no-op) |
 | `Renderer2D` (NanoVG/OpenGL) | `NullRenderer2D` (no output) |
-| `Renderer3D` (OpenGL/Vulkan) | `NullRenderer3D` (stores commands) |
+| `Renderer3D` (OpenGL/Metal/Vulkan) | `NullRenderer3D` (stores commands) |
 | `TextureManager` (GL textures) | `NullTextureManager` (dummy textures) |
 
 ## 3D Scene Testing

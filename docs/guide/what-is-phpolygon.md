@@ -10,12 +10,19 @@
 - **Backend-agnostic rendering** — game code builds a `RenderCommandList`; backends execute it
 - **Visual editor** — the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`) provides a NativePHP desktop app for visual scene editing
 
+## Production Status
+
+The **2D renderer** (OpenGL 4.1 / NanoVG via php-glfw) is production-ready. [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
+
+The **3D renderer** is in active development with multiple backend options.
+
 ## Render Backends
 
 | Backend | Status | Target |
 |---|---|---|
-| OpenGL 4.1 via php-glfw (2D/NanoVG) | Active | 2D games |
-| OpenGL 4.1 via php-glfw (3D) | Active | 3D games |
+| OpenGL 4.1 via php-glfw (2D/NanoVG) | **Production** | 2D games |
+| OpenGL 4.1 via php-glfw (3D) | In development | 3D games |
+| Metal via php-glfw (MoltenVK) | In development | 3D games (macOS) |
 | Vulkan via php-vulkan | Phase 8 | 3D production |
 
 ## Architecture Overview
@@ -25,10 +32,10 @@ Game Code / Scene
       ↓  (builds)
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
-┌──────────────────┬──────────────────┬──────────────────┐
-│ OpenGLRenderer3D │ VulkanRenderer3D │  NullRenderer3D  │
-│    (active)      │   (planned)      │  (headless/CI)   │
-└──────────────────┴──────────────────┴──────────────────┘
+┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+│ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
+│    (active)      │ (macOS/MoltenVK) │    (planned)     │  (headless/CI)   │
+└──────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
 Games are built in separate repositories and require `phpolygon/phpolygon` via Composer.

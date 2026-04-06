@@ -23,7 +23,7 @@ features:
   - title: Procedural Geometry
     details: All meshes generated programmatically — buildings, terrain, props. Version-controlled as code, not binary files.
   - title: Multi-Backend Rendering
-    details: OpenGL 4.1 (2D & 3D), Vulkan (planned). Backend-agnostic RenderCommandList architecture.
+    details: "2D: OpenGL/NanoVG (production). 3D: OpenGL, Metal (macOS/MoltenVK), Vulkan (planned). Backend-agnostic RenderCommandList architecture."
   - title: Ship Everywhere
     details: Build to standalone executables — macOS .app, Linux AppImage, Windows installer. Single binary with embedded PHP runtime.
 ---

@@ -44,6 +44,18 @@ ShaderRegistry::ids();          // string[]
 ShaderRegistry::clear();
 ```
 
+## Backend Shader Pipeline
+
+All shaders are authored in GLSL. Each 3D backend handles compilation differently:
+
+| Backend | Pipeline |
+|---|---|
+| `OpenGLRenderer3D` | GLSL compiled at runtime via `glCreateShader` |
+| `MetalRenderer3D` | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
+| `VulkanRenderer3D` | GLSL compiled to SPIR-V at build time via `glslangValidator` |
+
+The shader system is backend-agnostic — `ShaderRegistry` stores GLSL source paths regardless of which renderer executes them.
+
 ## Built-in Shaders
 
 Registered automatically when the 3D renderer is constructed:
