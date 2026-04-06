@@ -10,7 +10,7 @@ export default defineConfig({
   ],
 
   themeConfig: {
-    logo: { src: '/logo.svg', alt: 'PHPolygon' },
+    logo: { src: '/logo-header.svg', alt: 'PHPolygon' },
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
