@@ -31,9 +31,9 @@ $engine = new Engine(new EngineConfig(
     title: 'My First Game',
 ));
 
-$engine->onRender(function (Engine $e) {
+$engine->onRender(function (Engine $e, float $interpolation) {
     $r = $e->renderer2D;
-    $r->drawFilledRect(100, 100, 200, 150, Color::blue());
+    $r->drawRect(100, 100, 200, 150, Color::blue());
     $r->drawText('Hello PHPolygon!', 120, 160, 24, Color::white());
 });
 
