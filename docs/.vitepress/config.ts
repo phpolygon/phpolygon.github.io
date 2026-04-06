@@ -6,11 +6,11 @@ export default defineConfig({
   lang: 'en-US',
 
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
   ],
 
   themeConfig: {
-    logo: '/logo.png',
+    logo: { src: '/logo.svg', alt: 'PHPolygon' },
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
