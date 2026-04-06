@@ -6,11 +6,11 @@ export default defineConfig({
   lang: 'en-US',
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }],
   ],
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logo.png',
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
