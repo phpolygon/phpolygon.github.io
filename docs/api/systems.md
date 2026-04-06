@@ -31,7 +31,7 @@ class DamageSystem extends System
             $receiver->pendingDamage = [];
 
             if ($health->isDead()) {
-                $world->despawn($entity);
+                $world->destroyEntity($entity->id);
             }
         }
     }

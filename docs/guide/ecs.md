@@ -7,7 +7,7 @@ PHPolygon uses a **hybrid ECS model** that combines the flexibility of object-or
 Entities are PHP objects with a component array. They have identity and lifecycle.
 
 ```php
-$player = $world->spawn('Player');
+$player = $world->createEntity();
 $player->attach(new Transform3D(position: new Vec3(0, 2, 0)));
 $player->attach(new MeshRenderer('character', 'skin'));
 ```

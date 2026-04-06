@@ -24,8 +24,8 @@ use PHPolygon\Support\Facades\World;
 use PHPolygon\Support\Facades\Events;
 use PHPolygon\Support\Facades\Shader;
 
-// Spawn an entity
-$player = World::spawn('Player');
+// Create an entity
+$player = World::createEntity();
 
 // Listen for events
 Events::listen(EntitySpawned::class, function ($e) { /* ... */ });

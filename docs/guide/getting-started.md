@@ -53,7 +53,6 @@ use PHPolygon\Component\Camera3DComponent;
 use PHPolygon\Geometry\BoxMesh;
 use PHPolygon\Geometry\MeshRegistry;
 use PHPolygon\Math\Vec3;
-use PHPolygon\Math\Quaternion;
 use PHPolygon\Rendering\Material;
 use PHPolygon\Rendering\MaterialRegistry;
 use PHPolygon\Rendering\Color;
@@ -71,14 +70,14 @@ MaterialRegistry::register('red', Material::color(Color::red()));
 
 $engine->onInit(function (Engine $e) {
     // Camera
-    $cam = $e->world->spawn('Camera');
-    $cam->attach(new Transform3D(position: new Vec3(0, 3, 5)));
-    $cam->attach(new Camera3DComponent());
+    $e->world->createEntity()
+        ->attach(new Transform3D(position: new Vec3(0, 3, 5)))
+        ->attach(new Camera3DComponent());
 
     // A red box
-    $box = $e->world->spawn('Box');
-    $box->attach(new Transform3D(position: new Vec3(0, 0, 0)));
-    $box->attach(new MeshRenderer('box', 'red'));
+    $e->world->createEntity()
+        ->attach(new Transform3D(position: new Vec3(0, 0, 0)))
+        ->attach(new MeshRenderer('box', 'red'));
 });
 
 $engine->run();
@@ -111,8 +110,8 @@ use PHPolygon\Support\Facades\Input;
 use PHPolygon\Support\Facades\Shader;
 use PHPolygon\Support\Facades\Events;
 
-// Spawn entities
-$entity = World::spawn('Player');
+// Create entities
+$entity = World::createEntity();
 
 // Check input
 if (Input::isKeyPressed(GLFW_KEY_SPACE)) {
