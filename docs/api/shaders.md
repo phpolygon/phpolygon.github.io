@@ -66,6 +66,7 @@ Registered automatically when the 3D renderer is constructed:
 | `unlit` | `unlit.vert.glsl` | `unlit.frag.glsl` | Albedo + fog, no lighting |
 | `normals` | `normals.vert.glsl` | `normals.frag.glsl` | Normal visualization |
 | `depth` | `depth.vert.glsl` | `depth.frag.glsl` | Depth buffer visualization |
+| `shadow` | `shadow.vert.glsl` | `shadow.frag.glsl` | Depth-only pass for shadow maps (internal) |
 | `skybox` | `skybox.vert.glsl` | `skybox.frag.glsl` | Cubemap skybox |
 
 ## Material Shader Property

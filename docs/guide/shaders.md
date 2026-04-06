@@ -8,7 +8,7 @@ PHPolygon provides a complete shader management system. Games can register custo
 use PHPolygon\Support\Facades\Shader;
 
 // List all available shaders
-Shader::available();  // ['default', 'unlit', 'normals', 'depth', 'skybox']
+Shader::available();  // ['default', 'unlit', 'normals', 'depth', 'shadow', 'skybox']
 
 // Override globally (all draws use this shader)
 Shader::use('unlit');
@@ -29,6 +29,7 @@ Shader::reset();
 | `unlit` | Albedo + emission + fog only, no lighting (performance baseline) |
 | `normals` | Debug: visualize surface normals as RGB colors |
 | `depth` | Debug: visualize depth buffer (white = near, black = far) |
+| `shadow` | Depth-only pass for shadow maps (used internally by renderer) |
 | `skybox` | Cubemap skybox (used internally by `SetSkybox` command) |
 
 ## Per-Material Shader Assignment

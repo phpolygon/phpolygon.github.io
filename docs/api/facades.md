@@ -32,7 +32,7 @@ Events::listen(EntitySpawned::class, function ($e) { /* ... */ });
 
 // Switch shaders
 Shader::use('unlit');
-Shader::available();  // ['default', 'unlit', 'normals', 'depth', 'skybox']
+Shader::available();  // ['default', 'unlit', 'normals', 'depth', 'shadow', 'skybox']
 Shader::reset();
 ```
 
