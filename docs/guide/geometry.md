@@ -51,7 +51,7 @@ The backend uploads `MeshData` to the GPU once. Meshes are referenced by string 
 When the same mesh appears many times, use `DrawMeshInstanced` for a single GPU draw call:
 
 ```php
-// 20 buildings — one draw call
+// 20 buildings  - one draw call
 foreach ($this->buildingLayout() as $i => $pos) {
     $b->entity("Building_{$i}")
         ->with(new Transform3D(position: $pos))
@@ -64,7 +64,7 @@ The `Renderer3DSystem` automatically batches identical mesh+material pairs.
 ## Benefits
 
 - Entire world is version-controlled as PHP code
-- Parameters change in one place — world updates everywhere
+- Parameters change in one place  - world updates everywhere
 - No external tool dependency
 - Claude Code can generate and iterate geometry directly
 - GPU instancing makes large worlds cheap to render

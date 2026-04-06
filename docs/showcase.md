@@ -27,17 +27,17 @@ It is the first game built with PHPolygon and ships with the **2D renderer** (Op
 
 ### Gameplay
 
-<img src="/showcase/code-tycoon-desktop.png" alt="Code Tycoon — Desktop view" style="width: 100%; border-radius: 8px;" />
+<img src="/showcase/code-tycoon-desktop.png" alt="Code Tycoon  - Desktop view" style="width: 100%; border-radius: 8px;" />
 
-*The desktop view — manage your company across 16 departments: development, marketing, finance, employees, and more.*
+*The desktop view  - manage your company across 16 departments: development, marketing, finance, employees, and more.*
 
 ### Tech Highlights
 
-- **Entire UI** rendered via PHPolygon's `Renderer2D` (NanoVG) — no HTML, no browser
+- **Entire UI** rendered via PHPolygon's `Renderer2D` (NanoVG)  - no HTML, no browser
 - **Visual Regression Testing** with PHPolygon's `GdRenderer2D` + `VisualTestCase`
 - **Standalone executable** built with PHPolygon's PHAR build pipeline (embedded PHP runtime)
 - **Mod support** via PHPolygon's `ModLoader` system
-- Game logic, UI, and scenes are 100% PHP — authored with Claude Code
+- Game logic, UI, and scenes are 100% PHP  - authored with Claude Code
 
 ---
 

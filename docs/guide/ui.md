@@ -28,8 +28,8 @@ $ui->end();
 
 | Widget | Method | Returns |
 |---|---|---|
-| Button | `button(id, label, width, disabled?)` | `bool` — true on release |
-| Checkbox | `checkbox(id, label, value)` | `bool` — new value |
+| Button | `button(id, label, width, disabled?)` | `bool`  - true on release |
+| Checkbox | `checkbox(id, label, value)` | `bool`  - new value |
 | Label | `label(text)` | `void` |
 | Separator | `separator()` | `void` |
 
@@ -53,5 +53,5 @@ $ui->end();
 
 - `UIContext` must be called from `render()`, not `update()`
 - Constructor accepts `InputInterface`, not the concrete `Input` class
-- `button()` uses `isMouseButtonReleased` internally — safe on macOS
+- `button()` uses `isMouseButtonReleased` internally  - safe on macOS
 - `disabled=true` makes a button non-clickable with distinct styling

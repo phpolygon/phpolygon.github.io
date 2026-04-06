@@ -54,7 +54,7 @@ All shaders are authored in GLSL. Each 3D backend handles compilation differentl
 | `MetalRenderer3D` | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
 | `VulkanRenderer3D` | GLSL compiled to SPIR-V at build time via `glslangValidator` |
 
-The shader system is backend-agnostic — `ShaderRegistry` stores GLSL source paths regardless of which renderer executes them.
+The shader system is backend-agnostic  - `ShaderRegistry` stores GLSL source paths regardless of which renderer executes them.
 
 ## Built-in Shaders
 

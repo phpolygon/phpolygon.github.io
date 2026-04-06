@@ -15,13 +15,13 @@ php vendor/bin/phpolygon build --dry-run                           # show config
 
 The build system runs a 7-phase pipeline:
 
-1. **Vendor** — `composer update --no-dev` (restored after build)
-2. **Stage** — copy src/, vendor/, assets/, resources/ into temp dir
-3. **PHAR** — create `game.phar` with custom stub
-4. **micro.sfx** — resolve static PHP binary (cache or download)
-5. **Combine** — concatenate `micro.sfx` + `game.phar` into single executable
-6. **Package** — platform-specific: macOS `.app` bundle, Linux/Windows directory
-7. **Report** — file sizes and build summary
+1. **Vendor**  - `composer update --no-dev` (restored after build)
+2. **Stage**  - copy src/, vendor/, assets/, resources/ into temp dir
+3. **PHAR**  - create `game.phar` with custom stub
+4. **micro.sfx**  - resolve static PHP binary (cache or download)
+5. **Combine**  - concatenate `micro.sfx` + `game.phar` into single executable
+6. **Package**  - platform-specific: macOS `.app` bundle, Linux/Windows directory
+7. **Report**  - file sizes and build summary
 
 ## Configuration
 

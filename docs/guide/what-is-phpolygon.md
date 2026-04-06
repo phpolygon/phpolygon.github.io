@@ -1,14 +1,14 @@
 # What is PHPolygon?
 
-**PHPolygon** is a standalone PHP-native game engine. The primary authoring tool is Claude Code. Worlds, characters, and game logic are written entirely in PHP — no external 3D modelling tools (Blender, Maya, etc.) and no imported model files (`.fbx`, `.obj`, `.gltf`) are part of the workflow.
+**PHPolygon** is a standalone PHP-native game engine. The primary authoring tool is Claude Code. Worlds, characters, and game logic are written entirely in PHP  - no external 3D modelling tools (Blender, Maya, etc.) and no imported model files (`.fbx`, `.obj`, `.gltf`) are part of the workflow.
 
 ## Core Principles
 
-- **PHP is the source of truth** — scenes, components, geometry, and game logic are all PHP code
-- **Code-driven worlds** — geometry is generated procedurally, not imported from external tools
-- **AI-first authoring** — Claude Code generates and iterates on game content directly
-- **Backend-agnostic rendering** — game code builds a `RenderCommandList`; backends execute it
-- **Visual editor** — the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`) provides a NativePHP desktop app for visual scene editing
+- **PHP is the source of truth**  - scenes, components, geometry, and game logic are all PHP code
+- **Code-driven worlds**  - geometry is generated procedurally, not imported from external tools
+- **AI-first authoring**  - Claude Code generates and iterates on game content directly
+- **Backend-agnostic rendering**  - game code builds a `RenderCommandList`; backends execute it
+- **Visual editor**  - the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`) provides a NativePHP desktop app for visual scene editing
 
 ## Production Status
 

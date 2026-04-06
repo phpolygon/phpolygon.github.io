@@ -16,10 +16,10 @@ $player->attach(new MeshRenderer('character', 'skin'));
 
 Components own **per-entity** behavior. They may hold data and per-entity logic via lifecycle hooks:
 
-- `onAttach()` — called when added to an entity
-- `onUpdate(float $dt)` — called every tick
-- `onDetach()` — called when removed
-- `onInspectorGUI()` — editor UI rendering
+- `onAttach()`  - called when added to an entity
+- `onUpdate(float $dt)`  - called every tick
+- `onDetach()`  - called when removed
+- `onInspectorGUI()`  - editor UI rendering
 
 ```php
 use PHPolygon\ECS\AbstractComponent;

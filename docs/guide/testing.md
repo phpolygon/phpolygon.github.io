@@ -56,8 +56,8 @@ class MyGameTest extends TestCase
 }
 ```
 
-- **First run:** saves reference screenshot — test passes
-- **Subsequent runs:** compares against reference — fails on visual diff
+- **First run:** saves reference screenshot  - test passes
+- **Subsequent runs:** compares against reference  - fails on visual diff
 - **Update snapshots:** `PHPOLYGON_UPDATE_SNAPSHOTS=1 vendor/bin/phpunit`
 
 ### Comparison Parameters

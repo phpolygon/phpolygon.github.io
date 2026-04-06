@@ -24,9 +24,9 @@ features:
   - title: AI-first Authoring
     details: Claude Code is the primary authoring tool. Worlds, characters, and game logic are generated and iterated directly in PHP.
   - title: Procedural Geometry
-    details: All meshes generated programmatically — buildings, terrain, props. Version-controlled as code, not binary files.
+    details: All meshes generated programmatically  - buildings, terrain, props. Version-controlled as code, not binary files.
   - title: Multi-Backend Rendering
     details: "2D: OpenGL/NanoVG (production). 3D: OpenGL, Metal (macOS/MoltenVK), Vulkan (planned). Backend-agnostic RenderCommandList architecture."
   - title: Ship Everywhere
-    details: Build to standalone executables — macOS .app, Linux AppImage, Windows installer. Single binary with embedded PHP runtime.
+    details: Build to standalone executables  - macOS .app, Linux AppImage, Windows installer. Single binary with embedded PHP runtime.
 ---

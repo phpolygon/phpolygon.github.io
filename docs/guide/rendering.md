@@ -26,7 +26,7 @@ RenderContextInterface           ← base: beginFrame, endFrame, clear, setViewp
 ```
 
 ::: info
-The **2D renderer** (OpenGL/NanoVG) is production-ready — [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
+The **2D renderer** (OpenGL/NanoVG) is production-ready  - [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
 :::
 
 ## 3D Render Backends
@@ -36,7 +36,7 @@ The **2D renderer** (OpenGL/NanoVG) is production-ready — [Code Tycoon](https:
 | OpenGL 4.1 | `OpenGLRenderer3D` | In development | Primary 3D backend, all platforms |
 | Metal (MoltenVK) | `MetalRenderer3D` | In development | macOS-native via php-glfw's Metal support |
 | Vulkan | `VulkanRenderer3D` | Phase 8 | High-performance production backend |
-| Null | `NullRenderer3D` | Available | Headless/CI testing — stores commands for assertions |
+| Null | `NullRenderer3D` | Available | Headless/CI testing  - stores commands for assertions |
 
 All 3D backends implement `Renderer3DInterface` and execute the same `RenderCommandList`. Game code is fully backend-agnostic.
 
@@ -44,10 +44,10 @@ All 3D backends implement `Renderer3DInterface` and execute the same `RenderComm
 
 The OpenGL backend uses a multi-pass system:
 
-1. **Shadow pass** — render depth from directional light's perspective
-2. **Opaque pass** — draw all meshes with `alpha >= 1.0`
-3. **Transparent pass** — draw meshes with `alpha < 1.0` (back-to-front)
-4. **Skybox pass** — cubemap background
+1. **Shadow pass**  - render depth from directional light's perspective
+2. **Opaque pass**  - draw all meshes with `alpha >= 1.0`
+3. **Transparent pass**  - draw meshes with `alpha < 1.0` (back-to-front)
+4. **Skybox pass**  - cubemap background
 
 ## Render Commands
 

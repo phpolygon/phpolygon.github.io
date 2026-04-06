@@ -58,9 +58,9 @@ MaterialRegistry::register('stone', new Material(
 
 When rendering a mesh, the shader is resolved in this order:
 
-1. **`SetShader` override** — global frame-level override (via `Shader::use()`)
-2. **`Material::$shader`** — per-material shader assignment
-3. **`'default'`** — fallback PBR shader
+1. **`SetShader` override**  - global frame-level override (via `Shader::use()`)
+2. **`Material::$shader`**  - per-material shader assignment
+3. **`'default'`**  - fallback PBR shader
 
 ## Registering Custom Shaders
 
@@ -164,7 +164,7 @@ ShaderRegistry::register('default', new ShaderDefinition(
     'resources/shaders/source/my_pbr.frag.glsl',
 ));
 
-// Now construct the engine — it will use your shader as 'default'
+// Now construct the engine  - it will use your shader as 'default'
 $engine = new Engine(new EngineConfig(is3D: true));
 ```
 

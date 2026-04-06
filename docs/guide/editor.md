@@ -1,16 +1,16 @@
 # Editor
 
 ::: warning Work in Progress
-The PHPolygon Editor is under active development and not yet feature-complete. The architecture and command set described below reflect the current design — APIs may change.
+The PHPolygon Editor is under active development and not yet feature-complete. The architecture and command set described below reflect the current design  - APIs may change.
 :::
 
-The PHPolygon Editor is a **NativePHP desktop application** for visual scene editing. It runs as a standalone app (Electron + Laravel + Vue 3) with direct filesystem access to game projects — no HTTP server or IPC required.
+The PHPolygon Editor is a **NativePHP desktop application** for visual scene editing. It runs as a standalone app (Electron + Laravel + Vue 3) with direct filesystem access to game projects  - no HTTP server or IPC required.
 
 **Repository:** [phpolygon/editor](https://github.com/phpolygon/editor)
 
 ## Overview
 
-The editor lets you visually compose scenes, manage entities and components, and save them as PHP scene files. It is a **data editor**, not a real-time viewport — the game renders in a separate OpenGL/Vulkan window when play mode is active.
+The editor lets you visually compose scenes, manage entities and components, and save them as PHP scene files. It is a **data editor**, not a real-time viewport  - the game renders in a separate OpenGL/Vulkan window when play mode is active.
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -118,7 +118,7 @@ The editor auto-discovers engine and game components via **PHP Reflection**:
 3. Extracts property metadata via `#[Property]`, `#[Range]`, `#[Category]`, `#[Hidden]`
 4. Builds `ComponentSchema` with types, defaults, and editor hints
 
-This means custom game components automatically appear in the editor's "Add Component" menu and inspector panel — no manual registration needed.
+This means custom game components automatically appear in the editor's "Add Component" menu and inspector panel  - no manual registration needed.
 
 ### Inspector Field Editors
 
@@ -175,5 +175,5 @@ The editor is a **consumer** of the engine, not part of it:
 - The engine (`phpolygon/phpolygon`) is a Composer dependency of the editor
 - The editor reads engine component classes via reflection at runtime
 - Scene files are PHP code (canonical) ↔ JSON (editor interchange)
-- The editor never touches GPU APIs — rendering happens in the game process
+- The editor never touches GPU APIs  - rendering happens in the game process
 - Play mode launches the game in a separate window
