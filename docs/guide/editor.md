@@ -1,5 +1,9 @@
 # Editor
 
+::: warning Work in Progress
+The PHPolygon Editor is under active development and not yet feature-complete. The architecture and command set described below reflect the current design — APIs may change.
+:::
+
 The PHPolygon Editor is a **NativePHP desktop application** for visual scene editing. It runs as a standalone app (Electron + Laravel + Vue 3) with direct filesystem access to game projects — no HTTP server or IPC required.
 
 **Repository:** [phpolygon/editor](https://github.com/phpolygon/editor)
