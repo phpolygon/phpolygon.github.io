@@ -1,8 +1,8 @@
 # UI System
 
-PHPolygon provides `UIContext`, an immediate-mode UI toolkit for in-game interfaces.
+PHPolygon provides two UI approaches: an immediate-mode `UIContext` for simple in-game interfaces, and a retained-mode widget tree for complex layouts.
 
-## Basic Usage
+## Immediate Mode (UIContext)
 
 ```php
 use PHPolygon\UI\UIContext;
@@ -24,16 +24,16 @@ $ui->separator();
 $ui->end();
 ```
 
-## Widgets
+### Immediate-Mode Widgets
 
 | Widget | Method | Returns |
 |---|---|---|
-| Button | `button(id, label, width, disabled?)` | `bool`  - true on release |
-| Checkbox | `checkbox(id, label, value)` | `bool`  - new value |
+| Button | `button(id, label, width, disabled?)` | `bool` - true on release |
+| Checkbox | `checkbox(id, label, value)` | `bool` - new value |
 | Label | `label(text)` | `void` |
 | Separator | `separator()` | `void` |
 
-## Layout
+### Layout
 
 `UIContext` uses vertical flow by default. Use `'horizontal'` for row layouts:
 
@@ -49,9 +49,73 @@ $ui->button('opt_b', 'Option B', $btnW);
 $ui->end();
 ```
 
+## Retained Mode (Widget Tree)
+
+For complex UIs, PHPolygon provides a retained-mode widget system with a `WidgetTree` and layout containers.
+
+### Layout Widgets
+
+| Widget | Purpose |
+|---|---|
+| `HBox` | Horizontal container |
+| `VBox` | Vertical container |
+| `Stack` | Stacked/layered container |
+| `Panel` | Container with border and padding |
+| `ScrollView` | Scrollable container |
+| `Anchor` | Anchor-based positioning |
+| `Spacer` | Empty spacing |
+| `Separator` | Visual separator line |
+
+### Input Widgets
+
+| Widget | Purpose |
+|---|---|
+| `Button` | Clickable button with label and press state |
+| `Checkbox` | Checkbox with toggle state |
+| `Toggle` | Toggle switch |
+| `Slider` | Numeric slider (0.0-1.0) |
+| `TextInput` | Text input field |
+| `Dropdown` | Dropdown menu selector |
+
+### Display Widgets
+
+| Widget | Purpose |
+|---|---|
+| `Label` | Text label |
+| `Image` | Image display |
+| `ProgressBar` | Progress indicator |
+
+### Sizing
+
+Widgets support flexible sizing via `Sizing`:
+
+```php
+use PHPolygon\UI\Widget\Sizing;
+
+$button = new Button('Click me');
+$button->sizing = new Sizing(fillWidth: true, height: 40);
+```
+
+Padding and margins use `EdgeInsets`:
+
+```php
+use PHPolygon\UI\Widget\EdgeInsets;
+
+$panel = new Panel();
+$panel->padding = new EdgeInsets(left: 10, top: 10, right: 10, bottom: 10);
+```
+
+## UISystem
+
+The `UISystem` is an ECS system that manages UI layers and widget rendering. Register it like any other system:
+
+```php
+$world->addSystem(new UISystem($renderer, $input));
+```
+
 ## Important Notes
 
-- `UIContext` must be called from `render()`, not `update()`
+- Immediate-mode `UIContext` must be called from `render()`, not `update()`
 - Constructor accepts `InputInterface`, not the concrete `Input` class
-- `button()` uses `isMouseButtonReleased` internally  - safe on macOS
+- `button()` uses `isMouseButtonReleased` internally - safe on macOS
 - `disabled=true` makes a button non-clickable with distinct styling

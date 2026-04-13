@@ -36,6 +36,8 @@ export default defineConfig({
             { text: 'Rendering', link: '/guide/rendering' },
             { text: 'Shaders', link: '/guide/shaders' },
             { text: 'Procedural Geometry', link: '/guide/geometry' },
+            { text: 'Physics', link: '/guide/physics' },
+            { text: 'Audio', link: '/guide/audio' },
             { text: 'UI System', link: '/guide/ui' },
           ],
         },

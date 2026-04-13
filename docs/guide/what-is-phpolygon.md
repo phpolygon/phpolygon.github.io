@@ -23,6 +23,7 @@ The **3D renderer** is in active development with multiple backend options.
 | OpenGL 4.1 via php-glfw (2D/NanoVG) | **Production** | 2D games |
 | OpenGL 4.1 via php-glfw (3D) | In development | 3D games |
 | Metal via php-glfw (MoltenVK) | In development | 3D games (macOS) |
+| Vio (hardware) | In development | 2D + 3D |
 | Vulkan via php-vulkan | Phase 8 | 3D production |
 
 ## Architecture Overview
@@ -33,12 +34,27 @@ Game Code / Scene
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
 ┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
-│    (active)      │ (macOS/MoltenVK) │    (planned)     │  (headless/CI)   │
-└──────────────────┴──────────────────┴──────────────────┴──────────────────┘
+│ OpenGLRenderer3D │ MetalRenderer3D  │ VioRenderer3D │ VulkanRenderer3D │ NullRenderer3D │
+│    (active)      │ (macOS/MoltenVK) │   (Vio HW)   │    (planned)     │ (headless/CI)  │
+└──────────────────┴──────────────────┴───────────────┴──────────────────┴────────────────┘
 ```
 
 Games are built in separate repositories and require `phpolygon/phpolygon` via Composer.
+
+## Engine Features
+
+Beyond rendering, PHPolygon includes:
+
+- **Audio** - multi-channel audio with Master/Music/SFX/UI/Voice channels
+- **Physics** - 2D and 3D collision detection with BVH acceleration, rigid bodies, character controllers, hinge and linear joints
+- **Save system** - slot-based save/load with autosave support
+- **Scene management** - scene loading (single/additive), lifecycle events, prefab registry, JSON scene transpiler
+- **Input mapping** - action and axis bindings for keyboard, mouse, and gamepad
+- **Environment** - day/night cycle, weather (rain/snow/storm), seasons, atmospheric simulation, wind
+- **Prefabs** - procedural builders for doors, furniture, roofs, palm trees
+- **Threading** - parallel subsystems for physics, audio, AI, and asset streaming via `ext-parallel`
+- **Localization** - locale management with fallback chains
+- **UI** - immediate-mode and retained-mode widget toolkit
 
 ## Distribution
 

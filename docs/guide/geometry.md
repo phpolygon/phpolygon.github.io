@@ -15,6 +15,7 @@ MeshRegistry::register('box_1x1x1', BoxMesh::generate(1.0, 1.0, 1.0));
 MeshRegistry::register('cylinder', CylinderMesh::generate(radius: 1.0, height: 2.0, segments: 16));
 MeshRegistry::register('sphere', SphereMesh::generate(radius: 1.0, stacks: 12, slices: 16));
 MeshRegistry::register('plane', PlaneMesh::generate(10.0, 10.0));
+MeshRegistry::register('wedge', WedgeMesh::generate(peakZ: 1.5));
 ```
 
 ## Composite Geometry
@@ -76,3 +77,17 @@ The `Renderer3DSystem` automatically batches identical mesh+material pairs.
 | Geometry generators | `*Mesh` | `BoxMesh`, `BuildingMesh` |
 | Mesh IDs | `snake_case` | `'box_1x1x1'`, `'building_hq'` |
 | Material IDs | `snake_case` | `'stone_wall'`, `'neon_glass'` |
+
+## Mesh Caching
+
+`MeshCache` provides file-based caching of generated mesh data for fast load times. `MeshCacheIO` handles serialization/deserialization. This is useful when procedural generation is expensive and the result doesn't change between runs.
+
+## Built-in Primitives
+
+| Generator | Parameters | Description |
+|---|---|---|
+| `BoxMesh::generate()` | `width`, `height`, `depth` | Axis-aligned box (24 vertices, 36 indices) |
+| `CylinderMesh::generate()` | `radius`, `height`, `segments` | Cylinder |
+| `SphereMesh::generate()` | `radius`, `widthSegs`, `heightSegs` | UV sphere |
+| `PlaneMesh::generate()` | `width`, `height`, `widthSegs`, `heightSegs` | Flat plane |
+| `WedgeMesh::generate()` | `peakZ` | Wedge/ramp |

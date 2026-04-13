@@ -23,8 +23,8 @@ Components own **per-entity** behavior. They may hold data and per-entity logic 
 
 ```php
 use PHPolygon\ECS\AbstractComponent;
-use PHPolygon\Serialization\Attributes\Serializable;
-use PHPolygon\Serialization\Attributes\Property;
+use PHPolygon\ECS\Attribute\Serializable;
+use PHPolygon\ECS\Attribute\Property;
 
 #[Serializable]
 class Health extends AbstractComponent
@@ -52,10 +52,10 @@ class Health extends AbstractComponent
 Systems own **cross-entity** logic. A System iterates components across multiple entities:
 
 ```php
-use PHPolygon\ECS\System;
+use PHPolygon\ECS\AbstractSystem;
 use PHPolygon\ECS\World;
 
-class GravitySystem extends System
+class GravitySystem extends AbstractSystem
 {
     public function update(World $world, float $dt): void
     {
@@ -83,21 +83,65 @@ class GravitySystem extends System
 | Per-entity rendering | Component (`onRender`) |
 | Scene-wide rendering pipeline | System (`Renderer3DSystem`) |
 
+## System Phases
+
+Systems execute in defined phases via the `SystemPhase` enum:
+
+| Phase | When |
+|---|---|
+| `PreUpdate` | Before main update (input, physics prep) |
+| `Update` | Main game logic (gameplay, AI, animation) |
+| `Render` | After update (camera, renderer, UI) |
+| `PostUpdate` | After render (cleanup, events) |
+
 ## Serialization
 
-Components use PHP 8.x `#[Attribute]` annotations for automatic serialization via Reflection. Never implement manual `toJson()` / `fromJson()` methods.
+Components use PHP 8.x `#[Attribute]` annotations for automatic serialization via Reflection. All attributes live in `PHPolygon\ECS\Attribute`. Never implement manual `toJson()` / `fromJson()` methods.
 
 ```php
+use PHPolygon\ECS\Attribute\Serializable;
+use PHPolygon\ECS\Attribute\Property;
+use PHPolygon\ECS\Attribute\Range;
+use PHPolygon\ECS\Attribute\Hidden;
+
 #[Serializable]
 class Wind extends AbstractComponent
 {
     #[Property]
-    public Vec3 $direction = new Vec3(1, 0, 0);
+    public float $baseIntensity = 1.0;
 
     #[Property]
-    public float $speed = 5.0;
+    #[Range(min: 0.0, max: 2.0)]
+    public float $gustiness = 0.5;
 
     #[Property]
     public float $gustFrequency = 0.3;
+
+    #[Hidden]
+    public float $time = 0.0;
 }
 ```
+
+### Available Attributes
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `#[Serializable]` | Class | Marks component for serialization and editor discovery |
+| `#[Property]` | Property | Exposes property to editor (supports `editorHint`) |
+| `#[Hidden]` | Property | Hides property from editor |
+| `#[Category]` | Class | Groups properties in inspector |
+| `#[Range]` | Property | Numeric range constraints for sliders |
+
+## Events
+
+The ECS fires lifecycle events via the `EventDispatcher`:
+
+| Event | When |
+|---|---|
+| `EntitySpawned` | Entity created |
+| `EntityDestroyed` | Entity destroyed |
+| `CollisionEnter` / `CollisionExit` | Collision start/end |
+| `TriggerEnter` / `TriggerExit` | Trigger zone enter/exit |
+| `SceneLoading` / `SceneLoaded` | Before/after scene load |
+| `SceneUnloading` / `SceneUnloaded` | Before/after scene unload |
+| `SceneActivated` / `SceneDeactivated` | Scene becomes active/inactive |

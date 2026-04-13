@@ -16,6 +16,13 @@ PHPolygon provides Laravel-style facades for convenient static access to engine 
 | `Clock` | Timing Metrics | `$engine->clock` |
 | `Scenes` | Scene Manager | `$engine->scenes` |
 | `Shader` | Shader Manager | `$engine->shaders` |
+| `Audio` | Audio Manager | `$engine->audio` |
+| `CommandList3D` | 3D Render Commands | `$engine->commandList3D` |
+| `Locale` | Localization | `$engine->locale` |
+| `Renderer2D` | 2D Renderer | `$engine->renderer2D` |
+| `Renderer3D` | 3D Renderer | `$engine->renderer3D` |
+| `Saves` | Save Manager | `$engine->saves` |
+| `Scheduler` | Thread Scheduler | `$engine->scheduler` |
 
 ## Usage
 
@@ -23,6 +30,9 @@ PHPolygon provides Laravel-style facades for convenient static access to engine 
 use PHPolygon\Support\Facades\World;
 use PHPolygon\Support\Facades\Events;
 use PHPolygon\Support\Facades\Shader;
+use PHPolygon\Support\Facades\Audio;
+use PHPolygon\Support\Facades\Saves;
+use PHPolygon\Support\Facades\Scenes;
 
 // Create an entity
 $player = World::createEntity();
@@ -34,6 +44,18 @@ Events::listen(EntitySpawned::class, function ($e) { /* ... */ });
 Shader::use('unlit');
 Shader::available();  // ['default', 'unlit', 'normals', 'depth', 'shadow', 'skybox']
 Shader::reset();
+
+// Audio playback
+Audio::playSfx('explosion');
+Audio::playMusic('theme');
+Audio::setChannelVolume(AudioChannel::SFX, 0.8);
+
+// Save/load
+Saves::save(slotIndex: 0, name: 'Quicksave', data: ['level' => 3]);
+Saves::load(slotIndex: 0);
+
+// Scene management
+Scenes::loadScene(MyScene::class);
 ```
 
 ## How Facades Work

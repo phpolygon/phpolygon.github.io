@@ -51,7 +51,7 @@ class MainScene extends Scene
 use PHPolygon\Support\Facades\Scenes;
 
 // Load by class
-Scenes::load(MainScene::class);
+Scenes::loadScene(MainScene::class);
 
 // Scene lifecycle events
 Events::listen(SceneLoaded::class, function (SceneLoaded $e) {
@@ -59,11 +59,69 @@ Events::listen(SceneLoaded::class, function (SceneLoaded $e) {
 });
 ```
 
+## Load Modes
+
+Scenes can be loaded in two modes:
+
+| Mode | Behavior |
+|---|---|
+| `LoadMode::Single` | Unloads the current scene, then loads the new one (default) |
+| `LoadMode::Additive` | Loads the new scene on top of the current one |
+
+```php
+Scenes::loadScene(OverlayScene::class, LoadMode::Additive);
+```
+
+## Scene Lifecycle Events
+
+| Event | When |
+|---|---|
+| `SceneLoading` | Before scene load begins |
+| `SceneLoaded` | After scene is built and ready |
+| `SceneUnloading` | Before scene unload begins |
+| `SceneUnloaded` | After scene is fully unloaded |
+| `SceneActivated` | Scene becomes the active scene |
+| `SceneDeactivated` | Scene is no longer active |
+
 ## Scene Management
 
 The `SceneManager` handles scene lifecycle:
 
 ```php
-$engine->scenes->load(MainScene::class);    // Load and build
+$engine->scenes->loadScene(MainScene::class);    // Load and build
 $engine->scenes->current();                  // Get active scene
 ```
+
+## Prefabs
+
+Reusable entity templates are registered via `PrefabRegistry` and implement `PrefabInterface`:
+
+```php
+use PHPolygon\Scene\AbstractPrefab;
+use PHPolygon\Scene\SceneBuilder;
+
+class TreePrefab extends AbstractPrefab
+{
+    public static function getName(): string
+    {
+        return 'tree';
+    }
+
+    public function build(SceneBuilder $builder): EntityDeclaration
+    {
+        return $builder->entity('Tree')
+            ->with(new Transform3D())
+            ->with(new MeshRenderer('palm_trunk', 'wood'))
+            ->with(new PalmSway(swayStrength: 0.3));
+    }
+}
+
+// Register
+PrefabRegistry::register(TreePrefab::class);
+```
+
+PHPolygon includes built-in prefab builders for doors (`DoorBuilder`), furniture (`CrateBuilder`, `TableBuilder`, `ShelfBuilder`, etc.), and roofs (`RoofBuilder` with flat/gable/hip/mansard/shed/thatched variants).
+
+## Scene Transpiler
+
+The `SceneTranspiler` converts JSON scene files (`.scene.json`) to PHP code and vice versa. This is used by the [PHPolygon Editor](/guide/editor) to maintain the PHP-canonical model while providing a visual editing workflow.
