@@ -50,6 +50,25 @@ The **2D renderer** (OpenGL/NanoVG) is production-ready  - [Code Tycoon](https:/
 
 All backends implement `Renderer3DInterface` / `Renderer2DInterface` and execute the same command lists. Game code is fully backend-agnostic.
 
+::: tip Backend Auto-Selection
+When using Vio, `vio_create('auto', ...)` selects the best backend per platform:
+- **macOS:** Metal > OpenGL
+- **Windows:** D3D12 > D3D11 > Vulkan > OpenGL
+- **Linux:** Vulkan > OpenGL
+:::
+
+## Fallback Font Chain
+
+`VioRenderer2D` supports fallback fonts for locales that need additional Unicode coverage (e.g. CJK):
+
+```php
+$r2d->addFallbackFont('inter-semibold', 'noto-sans-sc');
+$r2d->preloadFonts([15.0, 26.0]);  // pre-bake atlas to avoid stutter
+$r2d->clearFallbackFonts();         // when switching to a non-CJK locale
+```
+
+The primary font renders first; fallback fonts only render glyphs the primary doesn't cover. `measureText()` uses the full chain for width calculation. The Vio font atlas is 4096x4096 with multi-range Unicode support (Latin, Cyrillic, Greek, CJK, Hangul, Vietnamese).
+
 ## 3D Render Pipeline
 
 The OpenGL backend uses a multi-pass system:

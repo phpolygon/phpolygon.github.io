@@ -4,7 +4,11 @@
 
 - PHP 8.2+
 - Composer
-- [php-glfw](https://github.com/mario-deluna/php-glfw) extension (for rendering)
+- [php-vio](https://github.com/phpolygon/php-vio) extension (recommended) or [php-glfw](https://github.com/mario-deluna/php-glfw) extension
+
+::: tip Recommended: php-vio
+php-vio auto-selects the best GPU backend for your platform (Metal on macOS, D3D12/Vulkan on Windows/Linux) and provides Unicode font support with a 4096x4096 multi-range atlas. Install via PIE: `pie install phpolygon/php-vio`
+:::
 
 ## Installation
 

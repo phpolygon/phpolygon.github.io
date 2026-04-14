@@ -73,6 +73,23 @@ $this->assertScreenshot($renderer, 'name',
 );
 ```
 
+### Backend-Agnostic VRT
+
+For VRT that works with both VIO and GLFW backends:
+
+```php
+$engine = Engine::initVrt(new EngineConfig(
+    title: 'VRT', width: 1280, height: 720, vsync: false,
+));
+// ... load fonts, render ...
+$img = $engine->captureFramebuffer();  // GdImage, works with VIO and GLFW
+```
+
+`initVrt()` creates a fully initialized Engine with window, renderer, and
+engine fonts. `captureFramebuffer()` returns a `GdImage` using `vio_read_pixels`
+(VIO) or `glReadPixels` (GLFW). Use a shared `renderScene()` method so VRT tests
+exercise the exact same code path as the live game.
+
 ### Snapshot Files
 
 ```

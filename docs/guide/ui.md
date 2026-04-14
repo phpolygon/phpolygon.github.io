@@ -113,9 +113,30 @@ The `UISystem` is an ECS system that manages UI layers and widget rendering. Reg
 $world->addSystem(new UISystem($renderer, $input));
 ```
 
+## Dropdown Overlays
+
+Dropdown option lists are rendered as deferred overlays via `flushOverlays()`.
+Call this once at the end of the frame, after all `begin()`/`end()` pairs:
+
+```php
+// After all UI rendering
+$ui->flushOverlays();
+```
+
+This ensures dropdown lists render on top of all other widgets regardless of
+draw order. Without it, widgets drawn after the dropdown occlude its option list.
+
+## Text Fields
+
+Text fields support:
+- Blinking cursor (1Hz) at the insertion point
+- Character insertion at cursor position (not just append)
+- Arrow key navigation, backspace at cursor, delete forward
+
 ## Important Notes
 
 - Immediate-mode `UIContext` must be called from `render()`, not `update()`
 - Constructor accepts `InputInterface`, not the concrete `Input` class
 - `button()` uses `isMouseButtonReleased` internally - safe on macOS
 - `disabled=true` makes a button non-clickable with distinct styling
+- Mouse button events are non-consuming: all callers within the same frame see the same state (required for immediate-mode UI)
