@@ -50,6 +50,20 @@ The **2D renderer** is production-ready with VIO as the primary backend and Nano
 
 All backends implement `Renderer3DInterface` / `Renderer2DInterface` and execute the same command lists. Game code is fully backend-agnostic.
 
+### Metal vs OpenGL 2D Performance
+
+Benchmarked on Apple M2 Pro (1280x720, VSync off). Measures draw + flush time only.
+
+| Scenario | Metal | OpenGL | Delta |
+|---|---|---|---|
+| 500 rects | 192 us | 179 us | +7% |
+| 200 rects + 200 rounded rects + 50 text | 323 us | 313 us | +3% |
+| 1000 rects + 100 text | **301 us** | 374 us | **-20%** |
+
+Metal is slightly slower on simple scenes but **20% faster on heavy scenes** with 1000+ draw calls. Tail latency (p95/p99) is **30-40% better** with Metal, meaning fewer frame time spikes.
+
+On Intel Macs the difference is more dramatic because macOS translates OpenGL calls through a Metal compatibility layer — using Metal directly eliminates this overhead.
+
 ::: tip Backend Auto-Selection
 The engine auto-detects available backends at startup:
 
