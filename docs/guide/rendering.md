@@ -9,10 +9,10 @@ Game Code / Scene
       ↓  (builds)
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
-┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
-│    (active)      │ (macOS/MoltenVK) │    (planned)     │ (headless/tests) │
-└──────────────────┴──────────────────┴──────────────────┴──────────────────┘
+┌──────────────────┬──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+│  VioRenderer3D   │ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
+│   (primary)      │   (fallback)     │ (macOS/MoltenVK) │    (planned)     │ (headless/tests) │
+└──────────────────┴──────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
 Game code never touches GPU APIs directly. The `Renderer3DSystem` collects `MeshRenderer` + `Transform3D` components and builds a `RenderCommandList` that the active backend executes.
@@ -26,7 +26,7 @@ RenderContextInterface           ← base: beginFrame, endFrame, clear, setViewp
 ```
 
 ::: info
-The **2D renderer** (OpenGL/NanoVG) is production-ready  - [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
+The **2D renderer** is production-ready with VIO as the primary backend and NanoVG/OpenGL as fallback - [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
 :::
 
 ## 3D Render Backends
@@ -35,7 +35,7 @@ The **2D renderer** (OpenGL/NanoVG) is production-ready  - [Code Tycoon](https:/
 |---|---|---|---|
 | OpenGL 4.1 | `OpenGLRenderer3D` | In development | Primary 3D backend, all platforms |
 | Metal (MoltenVK) | `MetalRenderer3D` | In development | macOS-native via php-glfw's Metal support |
-| Vio (hardware) | `VioRenderer3D` | In development | Vio hardware renderer |
+| Vio (hardware) | `VioRenderer3D` | **Production** | Primary 3D backend via php-vio |
 | Vulkan | `VulkanRenderer3D` | Phase 8 | High-performance production backend |
 | Null | `NullRenderer3D` | Available | Headless/CI testing - stores commands for assertions |
 
@@ -43,31 +43,49 @@ The **2D renderer** (OpenGL/NanoVG) is production-ready  - [Code Tycoon](https:/
 
 | Backend | Class | Status | Notes |
 |---|---|---|---|
-| NanoVG (OpenGL) | `Renderer2D` | **Production** | Primary 2D backend via php-glfw |
-| Vio (hardware) | `VioRenderer2D` | In development | Vio hardware 2D renderer |
+| Vio (hardware) | `VioRenderer2D` | **Production** | Primary 2D backend via php-vio |
+| NanoVG (OpenGL) | `Renderer2D` | **Production** | Fallback 2D backend via php-glfw |
 | GD | `GdRenderer2D` | Available | Software renderer for visual regression tests |
 | Null | `NullRenderer2D` | Available | Headless/CI testing |
 
 All backends implement `Renderer3DInterface` / `Renderer2DInterface` and execute the same command lists. Game code is fully backend-agnostic.
 
 ::: tip Backend Auto-Selection
-When using Vio, `vio_create('auto', ...)` selects the best backend per platform:
-- **macOS:** Metal > OpenGL
-- **Windows:** D3D12 > D3D11 > Vulkan > OpenGL
-- **Linux:** Vulkan > OpenGL
+The engine auto-detects available backends at startup:
+
+```
+if extension_loaded('vio') && !headless:
+    → VioWindow, VioInput, VioRenderer2D, VioRenderer3D, VioTextureManager, VioAudioBackend
+    → VIO internally selects: Metal (macOS) > Vulkan (Linux) > D3D12/D3D11 (Windows) > OpenGL
+else:
+    → GLFW Window, GLFW Input, NanoVG Renderer2D
+    → 3D backend from config: 'opengl' | 'vulkan' | 'metal' | 'null'
+if headless:
+    → NullWindow, NullRenderer2D, NullRenderer3D, NullTextureManager
+```
+
+When php-vio is available, it is always preferred for all rendering, input, and audio subsystems. The GLFW/NanoVG/OpenGL stack serves as a fallback when php-vio is not installed.
 :::
 
 ## Fallback Font Chain
 
-`VioRenderer2D` supports fallback fonts for locales that need additional Unicode coverage (e.g. CJK):
+`VioRenderer2D` supports a per-glyph fallback font system for locales that need additional Unicode coverage (e.g. CJK, Hangul):
 
 ```php
+// Register fallback fonts for a base font
 $r2d->addFallbackFont('inter-semibold', 'noto-sans-sc');
-$r2d->preloadFonts([15.0, 26.0]);  // pre-bake atlas to avoid stutter
-$r2d->clearFallbackFonts();         // when switching to a non-CJK locale
+$r2d->addFallbackFont('inter-semibold', 'noto-sans-kr');
+
+// Pre-bake the font atlas at commonly used sizes to avoid runtime stutter
+$r2d->preloadFonts([15.0, 26.0]);
+
+// Remove all fallback registrations (e.g. when switching to a non-CJK locale)
+$r2d->clearFallbackFonts();
 ```
 
-The primary font renders first; fallback fonts only render glyphs the primary doesn't cover. `measureText()` uses the full chain for width calculation. The Vio font atlas is 4096x4096 with multi-range Unicode support (Latin, Cyrillic, Greek, CJK, Hangul, Vietnamese).
+The primary font renders first; fallback fonts then fill in any missing glyphs on a per-glyph basis. `measureText()` uses the full chain for width calculation. The Vio font atlas is 4096x4096 with multi-range Unicode support (Latin, Cyrillic, Greek, CJK, Hangul, Vietnamese).
+
+The engine automatically loads **Noto Sans SC** and **Noto Sans KR** as fallback fonts from `resources/fonts/noto-sans-cjk/` when CJK locale support is needed. UIContext text rendering automatically benefits from any fallback fonts configured on the renderer.
 
 ## 3D Render Pipeline
 

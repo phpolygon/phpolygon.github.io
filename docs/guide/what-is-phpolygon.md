@@ -12,7 +12,7 @@
 
 ## Production Status
 
-The **2D renderer** (OpenGL 4.1 / NanoVG via php-glfw) is production-ready. [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
+The **2D renderer** is production-ready with VIO as the primary backend (Metal/Vulkan/D3D12 via php-vio) and NanoVG/OpenGL as fallback (via php-glfw). [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
 
 The **3D renderer** is in active development with multiple backend options.
 
@@ -23,7 +23,7 @@ The **3D renderer** is in active development with multiple backend options.
 | OpenGL 4.1 via php-glfw (2D/NanoVG) | **Production** | 2D games |
 | OpenGL 4.1 via php-glfw (3D) | In development | 3D games |
 | Metal via php-glfw (MoltenVK) | In development | 3D games (macOS) |
-| Vio (hardware) | In development | 2D + 3D |
+| Vio (hardware) | **Production** | 2D + 3D |
 | Vulkan via php-vulkan | Phase 8 | 3D production |
 
 ## Architecture Overview
@@ -34,8 +34,8 @@ Game Code / Scene
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
 ┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ OpenGLRenderer3D │ MetalRenderer3D  │ VioRenderer3D │ VulkanRenderer3D │ NullRenderer3D │
-│    (active)      │ (macOS/MoltenVK) │   (Vio HW)   │    (planned)     │ (headless/CI)  │
+│ VioRenderer3D  │ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │ NullRenderer3D │
+│  (primary)     │    (fallback)    │ (macOS/MoltenVK) │    (planned)     │ (headless/CI)  │
 └──────────────────┴──────────────────┴───────────────┴──────────────────┴────────────────┘
 ```
 

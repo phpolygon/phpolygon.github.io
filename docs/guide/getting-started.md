@@ -44,6 +44,24 @@ $engine->onRender(function (Engine $e, float $interpolation) {
 $engine->run();
 ```
 
+## Splash Screen
+
+The engine displays a splash screen on startup showing the PHPolygon logo and active renderer info (e.g. "Vio 2D - Vio 3D"):
+
+- **Fade in:** 0.4s, **hold**, **fade out:** 0.5s, **total:** ~2.5s
+- Logo loaded from `resources/branding/logo.png`
+- Skipped automatically in headless mode
+
+Disable or customize it via `EngineConfig`:
+
+```php
+$engine = new Engine(new EngineConfig(
+    title: 'My Game',
+    skipSplash: true,           // disable the splash screen entirely
+    splashDuration: 2.5,        // total duration in seconds (default)
+));
+```
+
 ## Minimal 3D Game
 
 ```php

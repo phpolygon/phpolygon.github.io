@@ -63,7 +63,6 @@ $world->addSystem(new AudioSystem($engine->audio->getBackend()));
 
 | Backend | Class | Notes |
 |---|---|---|
-| GLFW | `GLFWAudioBackend` | Via php-glfw |
-| PHP-GLFW | `PHPGLFWAudioBackend` | PHP GLFW bindings |
-| Vio | `VioAudioBackend` | Vio hardware |
+| Vio | `VioAudioBackend` | Primary (via php-vio extension) |
+| GLFW | `GLFWAudioBackend` | Fallback via php-glfw |
 | Null | `NullAudioBackend` | Headless/testing |

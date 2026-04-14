@@ -9,12 +9,12 @@ $engine = new Engine(new EngineConfig(headless: true));
 // All subsystems work: ECS, Scenes, Events, Audio, Locale, Saves
 ```
 
-| Normal mode | Headless mode |
-|---|---|
-| `Window` (GLFW) | `NullWindow` (no-op) |
-| `Renderer2D` (NanoVG/OpenGL) | `NullRenderer2D` (no output) |
-| `Renderer3D` (OpenGL/Metal/Vulkan) | `NullRenderer3D` (stores commands) |
-| `TextureManager` (GL textures) | `NullTextureManager` (dummy textures) |
+| Normal mode (VIO) | Normal mode (GLFW fallback) | Headless mode |
+|---|---|---|
+| `VioWindow` | `Window` (GLFW) | `NullWindow` (no-op) |
+| `VioRenderer2D` | `Renderer2D` (NanoVG/OpenGL) | `NullRenderer2D` (no output) |
+| `VioRenderer3D` | `Renderer3D` (OpenGL/Metal/Vulkan) | `NullRenderer3D` (stores commands) |
+| `VioTextureManager` | `TextureManager` (GL textures) | `NullTextureManager` (dummy textures) |
 
 ## 3D Scene Testing
 
@@ -85,10 +85,7 @@ $engine = Engine::initVrt(new EngineConfig(
 $img = $engine->captureFramebuffer();  // GdImage, works with VIO and GLFW
 ```
 
-`initVrt()` creates a fully initialized Engine with window, renderer, and
-engine fonts. `captureFramebuffer()` returns a `GdImage` using `vio_read_pixels`
-(VIO) or `glReadPixels` (GLFW). Use a shared `renderScene()` method so VRT tests
-exercise the exact same code path as the live game.
+`Engine::initVrt()` is the recommended way to create a test engine - it initializes the window, renderer, and engine fonts in one call. `captureFramebuffer()` returns a `GdImage` using `vio_read_pixels` (VIO) or `glReadPixels` (GLFW). The method handles Y-flip for OpenGL and resolution mismatch via resampling. Use a shared `renderScene()` method so VRT tests exercise the exact same code path as the live game.
 
 ### Snapshot Files
 

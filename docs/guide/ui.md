@@ -135,6 +135,7 @@ Text fields support:
 
 ## Important Notes
 
+- UIContext text rendering automatically benefits from fallback fonts configured on the renderer (see [Fallback Font Chain](/guide/rendering#fallback-font-chain))
 - Immediate-mode `UIContext` must be called from `render()`, not `update()`
 - Constructor accepts `InputInterface`, not the concrete `Input` class
 - `button()` uses `isMouseButtonReleased` internally - safe on macOS
