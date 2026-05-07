@@ -47,6 +47,7 @@ export default defineConfig({
             { text: 'Editor', link: '/guide/editor' },
             { text: 'Building & Distribution', link: '/guide/building' },
             { text: 'Headless & Testing', link: '/guide/testing' },
+            { text: 'Performance Profiling', link: '/guide/profiling' },
           ],
         },
       ],
