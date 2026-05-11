@@ -35,6 +35,7 @@ export default defineConfig({
             { text: 'Scenes', link: '/guide/scenes' },
             { text: 'Prefabs', link: '/guide/prefabs' },
             { text: 'Rendering', link: '/guide/rendering' },
+            { text: 'Visual Quality', link: '/guide/visual-quality' },
             { text: 'Shaders', link: '/guide/shaders' },
             { text: 'Procedural Geometry', link: '/guide/geometry' },
             { text: 'Physics', link: '/guide/physics' },
