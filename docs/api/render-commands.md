@@ -107,6 +107,33 @@ new SetWaveAnimation(
 )
 ```
 
+### SetWind
+
+```php
+new SetWind(
+    direction: Vec3 = new Vec3(0.0, 0.0, 1.0),
+    intensity: float = 0.5,
+)
+```
+
+Sets global wind direction + intensity for the frame. Drives procedural cloth (`Material::cloth(...)`) and any future wind-driven effects (foliage, particles). When `intensity == 0` the cloth-anchored vertices remain fully still.
+
+### SetSnowCover
+
+```php
+new SetSnowCover(
+    coverage: float,  // 0 = no snow, 1 = full snow accumulation
+)
+```
+
+### SetGroundWetness
+
+```php
+new SetGroundWetness(
+    wetness: float,  // 0 = dry, 1 = soaked
+)
+```
+
 ### SetSkyColors
 
 ```php

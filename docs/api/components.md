@@ -54,6 +54,7 @@ All components extend `AbstractComponent` and use `#[Serializable]` for automati
 | Component | Key Properties | Purpose |
 |---|---|---|
 | `PalmSway` | `swayStrength`, `phaseOffset`, `isTrunk: bool` | Wind-driven sway for vegetation |
+| `ParticleEmitter` | `emissionRate`, `lifetime`, `velocity`, `gravity`, `size`, `colorStart/End` | GPU-friendly particle source (sparks, smoke, dust) |
 
 ## Terrain Components
 

@@ -24,9 +24,13 @@ features:
   - title: AI-first Authoring
     details: Claude Code is the primary authoring tool. Worlds, characters, and game logic are generated and iterated directly in PHP.
   - title: Procedural Geometry
-    details: All meshes generated programmatically  - buildings, terrain, props. Version-controlled as code, not binary files.
+    details: All meshes generated programmatically. Composite generators (Lathe, Sweep, SpokedRim) plus an SVG-to-PHP pipeline that turns 2D outlines into committable mesh classes.
+  - title: Visual Quality Stack
+    details: PBR + procedural normal/surface patterns, AO, ACES tone mapping, color grading, vignette, vol-fog, area lights, GPU particles, CSM shadows, SSR, TAA. All across OpenGL, Metal, and Vio.
+  - title: Procedural Cloth + Vehicle Prefabs
+    details: Vertex-shader cloth sway driven by SetWind. Vehicle prefab system with Sedan/SUV/Cabrio/Pickup/Compact variants composed from procedural primitives.
   - title: Multi-Backend Rendering
-    details: "2D: OpenGL/NanoVG (production). 3D: OpenGL, Metal (macOS/MoltenVK), Vulkan (planned). Backend-agnostic RenderCommandList architecture."
+    details: "2D: Vio (production), NanoVG/OpenGL (fallback). 3D: Vio, OpenGL, Metal, Vulkan. Backend-agnostic RenderCommandList architecture."
   - title: Ship Everywhere
     details: Build to standalone executables  - macOS .app, Linux AppImage, Windows installer. Single binary with embedded PHP runtime.
 ---

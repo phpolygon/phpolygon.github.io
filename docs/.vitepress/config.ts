@@ -33,6 +33,7 @@ export default defineConfig({
           items: [
             { text: 'ECS Architecture', link: '/guide/ecs' },
             { text: 'Scenes', link: '/guide/scenes' },
+            { text: 'Prefabs', link: '/guide/prefabs' },
             { text: 'Rendering', link: '/guide/rendering' },
             { text: 'Shaders', link: '/guide/shaders' },
             { text: 'Procedural Geometry', link: '/guide/geometry' },

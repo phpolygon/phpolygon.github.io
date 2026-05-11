@@ -105,10 +105,15 @@ The engine automatically loads **Noto Sans SC** and **Noto Sans KR** as fallback
 
 The OpenGL backend uses a multi-pass system:
 
-1. **Shadow pass**  - render depth from directional light's perspective
+1. **Shadow pass**  - render depth from directional light's perspective (Cascade Shadow Maps when enabled)
 2. **Opaque pass**  - draw all meshes with `alpha >= 1.0`
-3. **Transparent pass**  - draw meshes with `alpha < 1.0` (back-to-front)
+3. **Transparent pass**  - draw meshes with `alpha < 1.0` (sorted back-to-front by mesh sphere centre, not pivot)
 4. **Skybox pass**  - cubemap background
+5. **Post-process**  - TAA, color grading, vignette, FXAA (when enabled in GraphicsSettings)
+
+::: tip Transparency Scope
+Only `DrawMesh` draws produced by `Renderer3DSystem` are depth-sorted. `DrawMeshInstanced` batches (e.g. from `InstancedTerrainSystem`) cannot be per-instance sorted without defeating batching; transparent materials passed to instanced systems are rejected with a one-shot warning.
+:::
 
 ## Render Commands
 
@@ -126,18 +131,22 @@ Commands are plain PHP value objects appended to the `RenderCommandList`:
 | `SetFog` | Distance fog |
 | `SetShader` | Override active shader for subsequent draws |
 | `SetWaveAnimation` | Wave vertex animation (amplitude, frequency, phase) |
+| `SetWind` | Global wind direction + intensity (drives cloth + foliage sway) |
 | `SetSkyColors` | Sky gradient (sky color, horizon color) |
+| `SetSnowCover` | Per-frame snow accumulation factor (0..1) |
+| `SetGroundWetness` | Per-frame rain wetness factor (0..1) |
 | `SetEnvironmentMap` | PBR environment map |
 
 ## Materials
 
-Materials define PBR surface properties:
+Materials define PBR surface properties plus four orthogonal extension sets: **carpaint** (clearcoat + flakes + IBL), **procedural normal patterns**, **procedural surface-wear patterns**, and **vertex-shader cloth**. Every extension defaults to off, so existing materials keep rendering identically.
 
 ```php
 use PHPolygon\Rendering\Material;
 use PHPolygon\Rendering\MaterialRegistry;
 use PHPolygon\Rendering\Color;
 
+// Plain PBR
 MaterialRegistry::register('brick', new Material(
     albedo: new Color(0.7, 0.3, 0.2),
     roughness: 0.8,
@@ -148,9 +157,79 @@ MaterialRegistry::register('chrome', new Material(
     albedo: new Color(0.9, 0.9, 0.9),
     roughness: 0.1,
     metallic: 1.0,
-    shader: 'default',  // optional: specify shader
+    useEnvironmentMap: true,  // sample IBL cubemap for reflection
 ));
 ```
+
+### Carpaint
+
+`Material::carpaint(...)` is the convenience factory for paint with a clearcoat lobe + metallic flake jitter + IBL reflection. Used by the `Car` prefab's default materials.
+
+```php
+MaterialRegistry::register('car_paint_red', Material::carpaint(
+    new Color(0.85, 0.15, 0.15),
+    metallic: 0.7,
+    roughness: 0.30,
+));
+```
+
+The `proc_mode = 10` carpaint shader path is auto-selected when the material id has the `car_paint_` prefix.
+
+### Procedural Normal + Surface Patterns
+
+Both pattern systems are evaluated in-shader from a string id - **no texture uploads, no external image files**. Tangent space is derived per-fragment via screen-space derivatives so meshes do not need to ship tangent buffers.
+
+| Field | Pattern set |
+|---|---|
+| `normalPattern` | `bricks`, `bumps`, `orange_peel`, `hammered`, `hexagons`, `wood_grain`, `scratches`, `cracked`, `fbm_noise` |
+| `surfacePattern` | `worn`, `rusted`, `brushed`, `mossy` |
+
+```php
+MaterialRegistry::register('castle_wall', new Material(
+    albedo: new Color(0.55, 0.50, 0.45),
+    roughness: 0.85,
+    normalPattern: 'bricks',
+    normalScale: 4.0,
+    surfacePattern: 'worn',
+    surfaceScale: 2.0,
+    surfaceIntensity: 0.6,
+));
+```
+
+### Wetness (SSR Surrogate)
+
+`wetness` (0 = dry, 1 = soaked) is a forward-renderer stand-in for screen-space reflections. It reduces effective roughness, darkens albedo, and amplifies IBL on up-facing fragments so wet asphalt / polished floors read as reflective without a G-buffer ray-march pass.
+
+```php
+MaterialRegistry::register('asphalt_wet', new Material(
+    albedo: new Color(0.15, 0.15, 0.16),
+    roughness: 0.9,
+    wetness: 0.7,
+));
+```
+
+### Vertex-Shader Cloth
+
+`Material::cloth(...)` opts a material into procedural per-vertex sway. Anchor weight is derived from local Y over the mesh's AABB so the top stays still and the bottom swings - good enough for background-character trenchcoats, capes, banners, hanging cables. No CPU simulation, no extra render passes.
+
+```php
+use PHPolygon\Rendering\Command\SetWind;
+use PHPolygon\Math\Vec3;
+
+MaterialRegistry::register('coat_fabric', Material::cloth(
+    new Color(0.20, 0.18, 0.22),
+    strength: 0.10,
+    frequency: 1.4,
+));
+
+// Drive global wind via the SetWind command, once per frame
+$commandList->add(new SetWind(
+    direction: new Vec3(0.0, 0.0, 1.0),
+    intensity: 0.6,
+));
+```
+
+The cloth animation runs in the vertex stage and is byte-identical across the OpenGL, Vio, and Metal backends (locked by `ClothShaderConsistencyTest`). Real physical cloth (Bullet SoftBody / GPU compute solver) is documented in [`docs/rfcs/compute-pipeline.md`](https://github.com/phpolygon/phpolygon/blob/main/docs/rfcs/compute-pipeline.md).
 
 ## GPU Instancing
 
