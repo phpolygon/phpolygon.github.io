@@ -62,6 +62,24 @@ $engine = new Engine(new EngineConfig(
 ));
 ```
 
+### Cooperative init (generators)
+
+For long startup work, `onInit` may be a **generator function**. Each `yield`
+lets the engine render one splash frame and pump window events, so Linux
+compositors (Mutter/KWin) don't flag the window as "not responding" on
+slow GPUs:
+
+```php
+$engine->onInit(function (Engine $engine) {
+    loadFonts();
+    yield;                  // splash redraws, events pump
+    buildWorld();
+    yield;
+});
+```
+
+Void-returning callbacks still run synchronously — generators are opt-in.
+
 ## Minimal 3D Game
 
 ```php
