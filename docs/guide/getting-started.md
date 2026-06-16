@@ -179,3 +179,7 @@ if (Input::isKeyPressed(GLFW_KEY_SPACE)) {
 // Switch shaders for performance testing
 Shader::use('unlit');
 ```
+
+::: warning Key edges are consumed on read
+`Input::isKeyPressed()` and `isKeyReleased()` report the *edge* (this frame's press / release) and **consume it on read** — only the first system that reads a given key in a frame sees `true`; later reads that frame get `false`. So if two systems both react to the same key, register the higher-priority one first. For continuous "is it held down" checks use `isKeyDown()`, which does not consume. When handing control back from a modal (e.g. closing a menu), call `Input::clearKeyEdges()` so a stale press doesn't leak into gameplay.
+:::

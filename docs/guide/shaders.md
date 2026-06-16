@@ -84,8 +84,36 @@ Shaders are written in GLSL 4.10. The same GLSL source is used across all backen
 | Backend | Shader pipeline |
 |---|---|
 | **OpenGL 4.1** | GLSL loaded and compiled at runtime via `glCreateShader` |
+| **Direct3D 11/12** | GLSL → SPIR-V → HLSL via SPIRV-Cross (php-vio) |
 | **Metal (macOS)** | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
 | **Vulkan** | GLSL compiled to SPIR-V at build time via `glslangValidator` |
+
+### Cross-Backend Conventions
+
+Only the OpenGL backend ingests raw GLSL; every other backend transpiles it. Three coordinate conventions differ between APIs and can leak into PHP-side render math:
+
+| Convention | OpenGL | D3D11/12, Metal, Vulkan |
+|---|---|---|
+| Clip-space depth range | `[-1, 1]` | `[0, 1]` |
+| Render-target Y origin | bottom-left | top-left |
+| Shader source | raw GLSL | transpiled |
+
+The rasterised depth is fixed up for you during transpile, but any depth math the engine does *in PHP* (e.g. a shadow-compare reference) must know the target range. Rather than scattering `vio_backend_name($ctx) === 'opengl'` checks, query the `BackendConventions` value object:
+
+```php
+use PHPolygon\Rendering\BackendConventions;
+
+$conv = BackendConventions::forBackend(vio_backend_name($ctx));
+
+if ($conv->depthZeroToOne()) {
+    // D3D / Metal / Vulkan: depth in [0, 1]
+}
+if ($conv->flipRenderTargetClipY()) {
+    // sampling a GL-authored render target on a y-down backend needs a clip-Y flip
+}
+```
+
+Inside the engine the same object is available via `$engine->backendConventions()`. An unknown backend (e.g. headless, no vio) is treated as OpenGL-like — the safe default.
 
 Custom shaders must use the same vertex attribute layout as built-in shaders:
 

@@ -41,6 +41,8 @@ export default defineConfig({
             { text: 'Physics', link: '/guide/physics' },
             { text: 'Audio', link: '/guide/audio' },
             { text: 'UI System', link: '/guide/ui' },
+            { text: 'Saving & Loading', link: '/guide/saving' },
+            { text: 'Localization', link: '/guide/localization' },
           ],
         },
         {

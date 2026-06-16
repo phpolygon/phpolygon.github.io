@@ -226,6 +226,41 @@ Per-fragment ray-march in screen space with the directional light. Exits are ear
 | `Msaa4x` | high | 4x raster samples |
 | `Taa` | medium | Halton jitter + history reprojection |
 
+## Fieldtracing (SDF Global Illumination)
+
+Fieldtracing sphere-traces a baked **Signed Distance Field** of the world for diffuse global illumination, soft contact shadows and ambient occlusion. It *augments* the forward stack (shadow maps, SSAO, SSR, ACES) — it does not replace it. Because the SDF/probe bake cost dominates any frame-time gain, the tier is a deliberate settings choice and is **not** part of the adaptive hot-swap stack.
+
+```php
+use PHPolygon\Rendering\Quality\FieldtracingMode;
+
+$engine->graphics->update(fn(GraphicsSettings $s) => $s->with(
+    fieldtracing: FieldtracingMode::SdfOcclusion,
+));
+```
+
+| `FieldtracingMode` | Adds | Target hardware |
+|---|---|---|
+| `Off` (default) | forward stack only | all hardware |
+| `ProbesOnly` | static coloured probe-irradiance field | weak GPUs, iPad |
+| `SdfOcclusion` | + SDF ambient occlusion + soft SDF shadows | mid desktop |
+| `SdfBounce` | + 1-bounce diffuse GI | high-end desktop |
+
+The mode is evaluated against backend capability flags (`vio_supports_feature`). A backend that cannot satisfy the requested tier **silently degrades** to the highest one it can run (`SdfBounce → SdfOcclusion → ProbesOnly → Off`) — it never crashes.
+
+### Feeding the bake
+
+The trace pass needs the baked data uploaded once per world via three render commands (see [Render Commands](/api/render-commands#setfieldtracing)):
+
+- **`SetFieldtracing`** — per-frame mode/intensity/AO-radius.
+- **`SetFieldtracingVolume`** — the RGBA8 SDF volume (3D texture) for the `SdfOcclusion` / `SdfBounce` tiers.
+- **`SetFieldtracingProbes`** — the coloured SH-L1 irradiance field (three 3D textures) for `ProbesOnly` and up.
+
+Both data commands carry a `version`; the renderer re-uploads the GPU 3D textures only when it changes, so a static world bakes once and emits the cached command every frame for free. The volume/probe data is produced by the `PHPolygon\Fieldtracing\Volume` bakers (e.g. `SdfVolume::toRgba8()`); a parallel CPU bake at scene load keeps it off the hot path.
+
+::: tip Requires 3D textures
+Fieldtracing relies on GPU 3D textures (`vio_texture_3d`, php-vio ≥ v1.21.0) and enough sampler slots in the mesh shader (php-vio ≥ v1.21.1). On backends without 3D-texture support every tier degrades to the analytic hemisphere ambient automatically.
+:::
+
 ## Particles
 
 `ParticleEmitter` + `ParticleSystem` for sparks, smoke, dust. The hot draw loop uses a flat-float storage path; no per-particle PHP allocations once the buffer is warm.
@@ -271,6 +306,7 @@ $engine->graphics->update(fn(GraphicsSettings $s) => $s->with(targetFps: 60.0));
 | TAA | ✅ | ✅ | ✅ | - |
 | SSR (wetness surrogate) | ✅ | ✅ | ✅ | - |
 | Volumetric fog | ✅ | ✅ | ✅ | - |
+| Fieldtracing (SDF GI) | ✅ | ✅ | hemisphere | - |
 | Particles | ✅ | ✅ | ✅ | - |
 | FXAA / MSAA | ✅ | ✅ | ✅ | ✅ |
 
