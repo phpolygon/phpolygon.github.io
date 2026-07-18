@@ -1,20 +1,20 @@
 # What is PHPolygon?
 
-**PHPolygon** is a standalone PHP-native game engine. The primary authoring tool is Claude Code. Worlds, characters, and game logic are written entirely in PHP  - no external 3D modelling tools (Blender, Maya, etc.) and no imported model files (`.fbx`, `.obj`, `.gltf`) are part of the workflow.
+**PHPolygon** is a standalone PHP-native game engine. The primary authoring tool is Claude Code. Worlds, characters, and game logic are written entirely in PHP  - geometry is generated procedurally, so no external 3D modelling tools (Blender, Maya, etc.) are *required* and there is no runtime model-file loader. An external mesh can optionally be *baked* once into procedural `MeshData` in the [editor](/guide/editor) (`.obj`/`.stl`/`.gltf`/`.glb`, e.g. exported from Blender); the runtime still only ever sees PHP-side geometry.
 
 ## Core Principles
 
 - **PHP is the source of truth**  - scenes, components, geometry, and game logic are all PHP code
-- **Code-driven worlds**  - geometry is generated procedurally, not imported from external tools
+- **Code-driven worlds**  - geometry is generated procedurally in PHP; an external mesh can be baked once into `MeshData` in the editor, but is never loaded at runtime
 - **AI-first authoring**  - Claude Code generates and iterates on game content directly
 - **Backend-agnostic rendering**  - game code builds a `RenderCommandList`; backends execute it
 - **Visual editor**  - the [PHPolygon Editor](/guide/editor) (`phpolygon/editor`) provides a NativePHP desktop app for visual scene editing
 
 ## Production Status
 
-The **2D renderer** is production-ready with VIO as the primary backend (Metal/Vulkan/D3D12 via php-vio) and NanoVG/OpenGL as fallback (via php-glfw). [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
+The **2D renderer** is production-ready with VIO as the primary backend (Metal/Vulkan/D3D12 via php-vio) and NanoVG/OpenGL as fallback (via php-glfw). [Code Tycoon](https://store.steampowered.com/app/4347780/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
 
-The **3D renderer** is in active development with multiple backend options.
+The **3D renderer** is in active development with multiple backend options. [Code Rescue](/showcase) is the first 3D game built on it (in development, via php-vio).
 
 ## Render Backends
 

@@ -12,17 +12,21 @@ Games and projects built with the PHPolygon engine.
 
 **Code Tycoon** is a software company management simulation where you build your tech empire from a garage startup to a global corporation. Hire developers, learn programming languages, take on client projects, and ship your own products.
 
-It is the first game built with PHPolygon and ships with the **2D renderer** (OpenGL 4.1 / NanoVG).
+It is the first game built with PHPolygon and is **released on Steam**, running on the **2D renderer** across every backend  - Vio (Metal / D3D11 / D3D12 / Vulkan) as the primary path, with NanoVG/OpenGL as fallback.
 
 | | |
 |---|---|
-| **Engine** | PHPolygon 2D (OpenGL / NanoVG) |
+| **Engine** | PHPolygon 2D (Vio → Metal / D3D11 / D3D12 / Vulkan; NanoVG/OpenGL fallback) |
 | **Platform** | Windows, macOS, Linux |
 | **Distribution** | Steam |
 | **Authoring** | Claude Code |
 
+<a href="https://store.steampowered.com/app/4347780/Code_Tycoon/" target="_blank">
+  <img src="https://img.shields.io/badge/Steam-Available_Now-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Available now on Steam" />
+</a>
+&nbsp;
 <a href="https://store.steampowered.com/app/4417500/Code_Tycoon_Demo/" target="_blank">
-  <img src="https://img.shields.io/badge/Steam-Play_the_Demo-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Play the Demo on Steam" />
+  <img src="https://img.shields.io/badge/Steam-Play_the_Demo-2a475e?style=for-the-badge&logo=steam&logoColor=white" alt="Play the Demo on Steam" />
 </a>
 
 ### Gameplay
@@ -33,7 +37,7 @@ It is the first game built with PHPolygon and ships with the **2D renderer** (Op
 
 ### Tech Highlights
 
-- **Entire UI** rendered via PHPolygon's `Renderer2D` (NanoVG)  - no HTML, no browser
+- **Entire UI** rendered via PHPolygon's `Renderer2D`  - Vio (hardware-accelerated on Metal / D3D11 / D3D12 / Vulkan) with NanoVG/OpenGL fallback, no HTML, no browser
 - **Visual Regression Testing** with PHPolygon's `GdRenderer2D` + `VisualTestCase`
 - **Standalone executable** built with PHPolygon's PHAR build pipeline (embedded PHP runtime)
 - **Mod support** via PHPolygon's `ModLoader` system
@@ -44,31 +48,36 @@ It is the first game built with PHPolygon and ships with the **2D renderer** (Op
 ## Code Rescue
 
 <a href="https://store.steampowered.com/app/4852040/Code_Rescue/" target="_blank">
-  <img src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4852040/26716262ed887d2146bb4164937b88f714973cc2/capsule_616x353.jpg" alt="Code Rescue" style="max-width: 616px; width: 100%; border-radius: 8px;" />
+  <img src="/showcase/code-rescue-capsule.jpg" alt="Code Rescue" style="max-width: 616px; width: 100%; border-radius: 8px;" />
 </a>
 
-**Code Rescue** is a cozy coding game. An AI promised to take coding off everyone's hands — and Code City forgot how its own code ever worked, so the city went dark. Find the bugs, close the gaps, and bring it back to life one line at a time.
+**Code Rescue** is an interactive programming-learning game: complete code, fix bugs, and solve puzzles inside a living **3D city** that visually evolves as you progress  - from a first "Tutorial Island" to a fully built-out CodeCity.
 
-You repair real code in bite-sized pieces rather than writing it from scratch. There are no fail states and no timers — a peaceful, family-friendly puzzle adventure where the city blooms from grey and silent to colourful and alive with every fix.
-
-It is the first game built with PHPolygon's **3D renderer**.
+It is PHPolygon's **3D** showcase title and is currently **in development**. Wishlist it on Steam to follow along.
 
 | | |
 |---|---|
-| **Engine** | PHPolygon 3D (php-vio → Metal / D3D / Vulkan / OpenGL) |
+| **Engine** | PHPolygon 3D via php-vio (Metal / D3D11 / D3D12 / Vulkan / OpenGL) |
 | **Platform** | Windows, macOS, Linux |
-| **Distribution** | Steam (coming soon) |
+| **Distribution** | Steam (in development) |
 | **Authoring** | Claude Code |
 
 <a href="https://store.steampowered.com/app/4852040/Code_Rescue/" target="_blank">
-  <img src="https://img.shields.io/badge/Steam-Wishlist_Now-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Wishlist Code Rescue on Steam" />
+  <img src="https://img.shields.io/badge/Steam-Wishlist-171a21?style=for-the-badge&logo=steam&logoColor=white" alt="Wishlist Code Rescue on Steam" />
 </a>
+
+### Gameplay
+
+<img src="/showcase/code-rescue-screenshot.jpg" alt="Code Rescue  - Tutorial Island" style="width: 100%; border-radius: 8px;" />
+
+*Tutorial Island at night  - a fully 3D scene rendered through php-vio, with the XP/progression HUD drawn by PHPolygon's UI toolkit.*
 
 ### Tech Highlights
 
-- **3D world** rendered via PHPolygon's `Renderer3DInterface` + `RenderCommandList` — backend-agnostic across php-vio (Metal / D3D11 / D3D12 / Vulkan / OpenGL)
-- **Procedural geometry** — Code City is generated entirely from PHP code, no external model files (no Blender, no FBX)
-- Game logic, scenes, and shaders are 100% PHP — authored with Claude Code
+- **Procedural 3D city** - districts, buildings, and props generated in PHP; the world changes as the player progresses
+- **php-vio rendering** - hardware-accelerated 3D across Metal, D3D11/D3D12, Vulkan, and OpenGL from a single PHP codebase
+- **Standalone executable** built with PHPolygon's PHAR build pipeline (embedded PHP runtime)
+- Scenes, components, and game logic are 100% PHP  - authored with Claude Code
 
 ---
 

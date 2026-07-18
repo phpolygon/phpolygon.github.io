@@ -18,13 +18,13 @@ hero:
 
 features:
   - title: Pure PHP
-    details: Entire game logic, scenes, and geometry written in PHP. No external 3D modelling tools, no imported model files.
+    details: Entire game logic, scenes, and geometry written in PHP. No external tools required at runtime and no runtime model-file loader; the editor can optionally bake an external mesh once into procedural data.
   - title: ECS Architecture
     details: Hybrid Entity-Component-System with per-entity lifecycle hooks and cross-entity Systems for physics, rendering, and AI.
   - title: AI-first Authoring
     details: Claude Code is the primary authoring tool. Worlds, characters, and game logic are generated and iterated directly in PHP.
   - title: Procedural Geometry
-    details: All meshes generated programmatically. Composite generators (Lathe, Sweep, SpokedRim) plus an SVG-to-PHP pipeline that turns 2D outlines into committable mesh classes.
+    details: Meshes generated programmatically. Composite generators (Lathe, Sweep, SpokedRim), an SVG-to-PHP pipeline that turns 2D outlines into committable mesh classes, plus a one-time OBJ/STL/glTF import bake in the editor.
   - title: Visual Quality Stack
     details: PBR + procedural normal/surface patterns, AO, ACES tone mapping, color grading, vignette, vol-fog, area lights, GPU particles, CSM shadows, SSR, TAA. All across OpenGL, Metal, and Vio.
   - title: Procedural Cloth + Vehicle Prefabs

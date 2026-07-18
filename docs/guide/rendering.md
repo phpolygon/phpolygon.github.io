@@ -26,7 +26,7 @@ RenderContextInterface           ← base: beginFrame, endFrame, clear, setViewp
 ```
 
 ::: info
-The **2D renderer** is production-ready with VIO as the primary backend and NanoVG/OpenGL as fallback - [Code Tycoon](https://store.steampowered.com/app/2667120/Code_Tycoon/) ships with it. The **3D renderer** is in active development.
+The **2D renderer** is production-ready with VIO as the primary backend and NanoVG/OpenGL as fallback - [Code Tycoon](https://store.steampowered.com/app/4347780/Code_Tycoon/) (released on Steam) ships with it. The **3D renderer** is in active development, with [Code Rescue](https://store.steampowered.com/app/4852040/Code_Rescue/) as the first 3D game built on it.
 :::
 
 ## 3D Render Backends

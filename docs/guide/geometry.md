@@ -91,7 +91,11 @@ bin/svg2mesh assets/svg/details/tire_profile.svg TireMesh --revolve --segments=3
 
 Both the generated `.php` and an `.json` sidecar are committed alongside each other; the JSON is the diffable intermediate that lets PR reviewers reason about geometry changes.
 
-This is the canonical PHPolygon approach: **no Blender, no FBX, no .gltf**. Geometry lives in PHP code, gets diffed in PRs, and re-builds with a single command if the source SVG changes.
+This is the canonical PHPolygon approach: geometry lives in PHP code, gets diffed in PRs, and re-builds with a single command if the source SVG changes. There is **no runtime model-file loader** - the engine only ever draws PHP-side `MeshData`.
+
+::: tip Importing an external mesh
+When procedural authoring isn't the fastest route, the [editor](/guide/editor) can import an `.obj`/`.stl`/`.gltf`/`.glb` file (e.g. modelled in Blender) and **bake it once** into a raw `MeshData` asset under `assets/meshes/`. This is a one-time conversion, not a runtime dependency: the baked mesh behaves exactly like a procedurally generated one, and no model file ships with the game.
+:::
 
 ## MeshData
 
