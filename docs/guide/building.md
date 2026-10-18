@@ -203,8 +203,13 @@ before an upload.
 - The runner embeds a startup ini (OPcache on, tracing JIT, 128M buffer) overridden by
   `build.json` `php.ini`, so hooks and the workers they start run with JIT. Its `-d` options are
   `ini_set()` calls; a startup-only key prints `runner: <key> is fixed at startup, keeping ...`.
-- php-vio initialises its window platform when it loads, so a runner without a display may print
-  two GLFW warnings at start-up. They are harmless.
+- php-vio starts its window platform when it loads, before any PHP code runs. On a Linux host
+  with neither `DISPLAY` nor `WAYLAND_DISPLAY` (a build container) hooks therefore run with
+  `VIO_PLATFORM=null` unless you set `VIO_PLATFORM` yourself, and the workers they start inherit
+  it: no GLFW warnings (`error 65544 ... DISPLAY ... missing`) at start-up. The null platform has
+  no windows and no OpenGL context; `vio_audio_encode` and `vio_text_bitmap` work. Windows and
+  macOS hooks keep the native platform. (Since v0.68.1; earlier versions print the two warnings,
+  which are harmless.)
 
 ## Build Types
 
