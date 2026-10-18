@@ -25,7 +25,7 @@ PHPBench is a regular dev dependency installed by `composer install`.
 
 ## PerfProfiler
 
-`PHPolygon\Runtime\PerfProfiler` is the engine-wide profiling facade. When no profiler extension is loaded, every call collapses to a single bool check (~36µs per 50 markers — 0.2% of a 16.7ms frame budget).
+`PHPolygon\Runtime\PerfProfiler` is the engine-wide profiling facade. When no profiler extension is loaded, every call collapses to a single bool check (~36µs per 50 markers – 0.2% of a 16.7ms frame budget).
 
 ```php
 use PHPolygon\Runtime\PerfProfiler;
@@ -50,7 +50,7 @@ The engine ships with markers around every cross-system hot path. Section names 
 | `mesh.generate.<id>` | Procedural mesh generators |
 | `physics.tick` | `Physics3DSystem::update()` |
 
-Add new markers around any cross-system or per-frame work that you expect to be hot. Do **not** instrument tight inner loops (per-vertex, per-pixel) — the marker overhead distorts the measurement.
+Add new markers around any cross-system or per-frame work that you expect to be hot. Do **not** instrument tight inner loops (per-vertex, per-pixel) – the marker overhead distorts the measurement.
 
 ## F3 Dev Overlay
 
@@ -142,11 +142,11 @@ Update baselines deliberately when:
 php benchmarks/run.php <scenario> --warmup 60 --frames 600 --accept
 ```
 
-CI does **not** use the committed baselines as the regression reference because runner hardware differs from local hardware. Instead, CI runs each scenario twice on the same runner — once on PR HEAD and once on `main` — and diffs the two. This gives stable relative deltas.
+CI does **not** use the committed baselines as the regression reference because runner hardware differs from local hardware. Instead, CI runs each scenario twice on the same runner – once on PR HEAD and once on `main` – and diffs the two. This gives stable relative deltas.
 
 ### PHPBench Micro-Benchmarks
 
-For hot leaf functions — `Mat4`, `Quaternion`, mesh generators — PHPBench provides per-method statistics (mean, mode, standard deviation) over many revolutions:
+For hot leaf functions – `Mat4`, `Quaternion`, mesh generators – PHPBench provides per-method statistics (mean, mode, standard deviation) over many revolutions:
 
 ```bash
 vendor/bin/phpbench run benchmarks/micro/Math --report=aggregate
@@ -161,7 +161,7 @@ A repeatable workflow when you suspect or observe a performance issue:
 1. **Reproduce locally.** Run the scenario a few times to confirm the regression is real, not measurement noise.
 2. **Find the hot spot.** Re-run with `SPX_ENABLED=1` to get a flamegraph. Look for unexpectedly wide stacks.
 3. **Snapshot the current state.** `php benchmarks/run.php <scenario> --accept` writes a baseline you can diff against.
-4. **Implement the fix on a branch.** Keep changes focused — one optimization at a time so the PR has a clean story.
+4. **Implement the fix on a branch.** Keep changes focused – one optimization at a time so the PR has a clean story.
 5. **Diff before / after.** `php bin/phpolygon perf:report <scenario> --baseline`. Aim for a clearly negative delta on p95.
 6. **Update the baseline if the win is real.** Re-run with `--accept` and commit the new baseline alongside the code change. Both belong in the same PR.
 
@@ -171,9 +171,9 @@ A repeatable workflow when you suspect or observe a performance issue:
 
 ## Anti-Patterns
 
-- **Profiler enabled in production** — SPX and Excimer are dev-only. Never ship a build with them on.
-- **Markers in tight inner loops** — per-vertex / per-pixel instrumentation distorts measurements.
-- **Benchmarks without warm-up** — the first 30-60 frames are always slower (JIT, class loading, texture upload). The runner discards them by default; do not turn that off.
-- **Benchmarks with unseeded random** — procedural worlds need fixed seeds for reproducible numbers.
-- **Profiling on battery / under thermal throttle** — pin macOS to High Performance, otherwise numbers are meaningless.
-- **Comparing instanced vs non-instanced** runs with different mesh counts — apples to oranges.
+- **Profiler enabled in production** – SPX and Excimer are dev-only. Never ship a build with them on.
+- **Markers in tight inner loops** – per-vertex / per-pixel instrumentation distorts measurements.
+- **Benchmarks without warm-up** – the first 30-60 frames are always slower (JIT, class loading, texture upload). The runner discards them by default; do not turn that off.
+- **Benchmarks with unseeded random** – procedural worlds need fixed seeds for reproducible numbers.
+- **Profiling on battery / under thermal throttle** – pin macOS to High Performance, otherwise numbers are meaningless.
+- **Comparing instanced vs non-instanced** runs with different mesh counts – apples to oranges.

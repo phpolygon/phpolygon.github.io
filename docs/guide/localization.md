@@ -37,7 +37,7 @@ Locale::t('menu.start');                          // "New Game"
 Locale::t('menu.greeting', ['name' => 'Ada']);    // "Welcome, Ada"
 ```
 
-Placeholders use `:name` syntax in the string and a matching (colon-less) key in the params array. `t()` is shorthand for `get()`; both behave identically. If a key is missing in the current locale it falls back to the fallback locale, then to the key string itself — so a missing translation shows the key, never an error.
+Placeholders use `:name` syntax in the string and a matching (colon-less) key in the params array. `t()` is shorthand for `get()`; both behave identically. If a key is missing in the current locale it falls back to the fallback locale, then to the key string itself – so a missing translation shows the key, never an error.
 
 ## Pluralization
 
@@ -61,12 +61,37 @@ Locale::getLocale();              // "de"
 
 Locale::setFallbackLocale('en');
 Locale::getAvailableLocales();    // ['de', 'en']
-Locale::has('menu.start');        // bool — exists for the current locale?
+Locale::has('menu.start');        // bool – exists for the current locale?
 ```
 
 ::: warning Live switching only re-translates strings looked up each frame
-UI that calls `Locale::t()` every frame reflects a locale change immediately. Strings you resolve **once** (e.g. cached at scene load) keep their old value — re-resolve them after `setLocale()` if they must update live.
+UI that calls `Locale::t()` every frame reflects a locale change immediately. Strings you resolve **once** (e.g. cached at scene load) keep their old value – re-resolve them after `setLocale()` if they must update live.
 :::
+
+## Start language - Steam, then the system
+
+A game's first start should speak the player's language without asking. The engine resolves it;
+the game only passes the locales it ships and a fallback. No `ext-intl` needed.
+
+```php
+use PHPolygon\Platform\LanguageResolver;
+use PHPolygon\Platform\SteamSession;
+
+SteamSession::start();   // no-op without php-steamworks or a running Steam client
+$start = (new LanguageResolver($shippedCodes, 'en'))->resolve($savedChoiceOrNull);
+Locale::setLocale($start->locale);
+
+// Persist only a choice the player made in the options - never $start when
+// !$start->wasChosen(), or a later Steam/OS language change is never followed.
+```
+
+| Class | Purpose |
+|---|---|
+| `Locale\LocaleMatcher` | `normalize()` any tag (`de_DE.UTF-8@euro` → `de-DE`) and `match()` it against the shipped catalogue: exact, regional rules (es outside Spain → `es-419`, pt outside Brazil → `pt-PT`, zh by script), language, any region of that language. `$aliases` maps catalogue codes that are not tags (`['latam' => 'es-419']`) |
+| `Platform\SteamSession` | Idempotent `start()`, `runCallbacks()` per frame, `shutdown()` |
+| `Platform\SteamLanguage` | All 31 Steam API language codes → tags; `detect()` = per-game language, then the client UI language |
+| `Platform\SystemLanguage` | Windows user locale, Unix `LANGUAGE`/`LC_ALL`/`LC_MESSAGES`/`LANG`, macOS `AppleLanguages` |
+| `Platform\LanguageResolver` + `ResolvedLanguage` | saved > Steam > system > fallback; `source` says which won, `wasChosen()` whether to persist |
 
 ## Adding strings at runtime
 

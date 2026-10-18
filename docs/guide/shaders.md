@@ -113,7 +113,7 @@ if ($conv->flipRenderTargetClipY()) {
 }
 ```
 
-Inside the engine the same object is available via `$engine->backendConventions()`. An unknown backend (e.g. headless, no vio) is treated as OpenGL-like — the safe default.
+Inside the engine the same object is available via `$engine->backendConventions()`. An unknown backend (e.g. headless, no vio) is treated as OpenGL-like – the safe default.
 
 Custom shaders must use the same vertex attribute layout as built-in shaders:
 

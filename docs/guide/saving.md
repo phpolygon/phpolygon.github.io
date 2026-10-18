@@ -13,7 +13,7 @@ use PHPolygon\Support\Facades\Saves;
 
 $slot = Saves::save(
     slotIndex: 0,
-    name: 'Chapter 2 — Harbour',
+    name: 'Chapter 2 – Harbour',
     data: [
         'level'    => 3,
         'position' => [12.5, 0.0, -40.0],
@@ -24,7 +24,7 @@ $slot = Saves::save(
 );
 ```
 
-- **`data`** is your game state — any JSON-serialisable array (scalars, nested arrays). It is written to disk immediately.
+- **`data`** is your game state – any JSON-serialisable array (scalars, nested arrays). It is written to disk immediately.
 - **`metadata`** is optional display info for a load menu (chapter name, thumbnail path, difficulty) that you want to read *without* deserialising the whole save.
 - **`playTime`** is optional seconds-played tracking.
 
@@ -36,7 +36,7 @@ $slot = Saves::save(
 $slot = Saves::load(slotIndex: 0);
 
 if ($slot === null) {
-    // empty slot — start a new game
+    // empty slot – start a new game
 } else {
     $level    = $slot->data['level'];
     $position = $slot->data['position'];
@@ -57,7 +57,7 @@ if ($slot === null) {
 
 ## Building a load menu
 
-`listSlots()` returns the occupied slots' info **without** loading the full `data` payload — cheap enough to call when opening a menu:
+`listSlots()` returns the occupied slots' info **without** loading the full `data` payload – cheap enough to call when opening a menu:
 
 ```php
 foreach (Saves::listSlots() as $info) {
@@ -69,16 +69,16 @@ foreach (Saves::listSlots() as $info) {
 Other helpers:
 
 ```php
-Saves::exists(0);          // bool — is the slot occupied?
-Saves::findEmptySlot();    // ?int — lowest free slot, or null if full
+Saves::exists(0);          // bool – is the slot occupied?
+Saves::findEmptySlot();    // ?int – lowest free slot, or null if full
 Saves::delete(0);          // remove a slot's save from disk
 ```
 
 ## Patterns
 
-- **Active-slot autosave** — remember which slot the player is in and autosave into it on key beats (level complete, quit, pause). Keep a single "active slot" variable in your game state.
-- **Skip the intro on load** — when a save is loaded, jump straight into the gameplay scene instead of replaying the boot/intro sequence; only show the intro when starting fresh.
-- **Keep `data` flat and serialisable** — store ids, coordinates and primitives, not live objects. Rehydrate entities from that data when the scene loads.
+- **Active-slot autosave** – remember which slot the player is in and autosave into it on key beats (level complete, quit, pause). Keep a single "active slot" variable in your game state.
+- **Skip the intro on load** – when a save is loaded, jump straight into the gameplay scene instead of replaying the boot/intro sequence; only show the intro when starting fresh.
+- **Keep `data` flat and serialisable** – store ids, coordinates and primitives, not live objects. Rehydrate entities from that data when the scene loads.
 
 ::: tip Custom location & slot count
 The manager is constructed with a save path and slot count (`new SaveManager($savePath, $maxSlots)`). In a normal game the engine wires this for you and you only touch the `Saves` facade.

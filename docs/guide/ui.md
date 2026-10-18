@@ -133,6 +133,58 @@ Text fields support:
 - Character insertion at cursor position (not just append)
 - Arrow key navigation, backspace at cursor, delete forward
 
+## Text Areas (code editing)
+
+`textArea($id, $value, $rows, $underlay, $indentRules)` edits multi-line text through
+`UI\TextEdit\TextEditModel` (pure model: buffer, caret, selection, undo; positions are code points):
+
+- Tab / Shift+Tab (also over a line selection), Enter with auto-indent (`IndentRules`:
+  `IndentRules::braces()` or `offside()` per language), smart Home, Ctrl+Home/End
+- Shift selection, mouse drag, double-click selects a word, Ctrl word jumps
+- Ctrl+A/C/X/V, Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z (a typing run is one undo step)
+- macOS: Command for shortcuts, Option for word jumps
+
+Shortcut letters follow the keyboard layout (`VioKeyboardLayout` = php-vio `vio_key_name()`, so
+Ctrl+Z hits the Z keycap on QWERTZ too). The clipboard is a `ClipboardInterface`: `VioClipboard`
+(system clipboard, php-vio 2.33+) when the input is `VioInput`, otherwise `MemoryClipboard` -
+tests never touch the user's clipboard. The returned `TextAreaView` reports `caret` and
+`selectionStart` / `selectionEnd`.
+
+## Modal Interaction Gate
+
+`setInteractive(false)` gates the widgets behind a modal overlay: they still render, but hover -
+and with it every click - misses. Restore `true` before the modal draws its own widgets.
+
+```php
+$ui->setInteractive(false);
+drawPanelsBehindModal();   // visible but unresponsive
+$ui->setInteractive(true);
+drawConfirmDialog();        // own widgets respond again
+```
+
+## Rebindable Input Actions
+
+The bindings given to `InputMap::addAction()` are the action's **defaults**; rebinding is built
+in. The engine never persists it - the game stores the exported array in its own settings.
+
+```php
+$map->addAction('replay', InputBinding::key(71))      // G
+    ->reserve(87, 65, 83, 68)                          // keys the game reads directly
+    ->setRebindable('interact', false)                 // locked: its keys count as reserved
+    ->setConflictPolicy(RebindConflictPolicy::Reject); // or Swap
+$result = $map->rebind('replay', 84);                  // RebindResult: status + otherAction
+$map->resetBinding('replay');
+$settings['keys'] = $map->exportOverrides();          // only non-default actions
+$dropped = $map->importOverrides($settings['keys']);  // re-validated on load
+```
+
+- `InputMap::poll()` / `InputMapSystem` read only `isKeyDown()` and never consume press edges.
+- Reserved keys and keys of locked actions are refused (`RebindStatus::Reserved`); a clash with
+  another action is `Conflict`, or with policy `Swap` the other action takes the old key.
+- `KeyLabel` names keys for the UI (printable keys through the current layout, named keys via
+  `input.key.<slug>` translations). `KeyCapture` is the "press a key" prompt; it polls
+  `isKeyDown()` only, and Escape is excluded by default so the game can read it as cancel.
+
 ## Important Notes
 
 - UIContext text rendering automatically benefits from fallback fonts configured on the renderer (see [Fallback Font Chain](/guide/rendering#fallback-font-chain))

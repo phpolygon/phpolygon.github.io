@@ -2,12 +2,14 @@
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.5+ (`composer.json` requires `php >= 8.5` and `ext-vio`)
 - Composer
-- [php-vio](https://github.com/phpolygon/php-vio) extension (recommended) or [php-glfw](https://github.com/mario-deluna/php-glfw) extension
+- [php-vio](https://github.com/phpolygon/php-vio) extension - current release recommended (2.34+ for Ogg Opus/Vorbis audio and the system clipboard). Newer rendering features are enabled per php-vio feature flag, so an older php-vio runs with those features off.
+- Optional fallbacks when php-vio is not loaded: [php-glfw](https://github.com/mario-deluna/php-glfw) (OpenGL 3.0-4.6 + NanoVG) or php-vulkan (standalone Vulkan 3D)
+- Optional: `ext-gd` for visual regression tests, `ext-parallel` (ZTS) for threading
 
 ::: tip Recommended: php-vio
-php-vio auto-selects the best GPU backend for your platform (Metal on macOS, D3D12/Vulkan on Windows/Linux) and provides Unicode font support with a 4096x4096 multi-range atlas. Install via PIE: `pie install phpolygon/php-vio`
+php-vio picks the best GPU backend for your platform (Metal on macOS, D3D12/D3D11 on Windows, Vulkan on Linux, OpenGL as fallback) and also provides window, input, audio, text shaping and textures. Install via PIE: `pie install phpolygon/php-vio`, or take a prebuilt binary from the [releases](https://github.com/phpolygon/php-vio/releases). Its documentation lives at [phpolygon.github.io/php-vio-docs](https://phpolygon.github.io/php-vio-docs/).
 :::
 
 ## Installation
@@ -78,7 +80,7 @@ $engine->onInit(function (Engine $engine) {
 });
 ```
 
-Void-returning callbacks still run synchronously — generators are opt-in.
+Void-returning callbacks still run synchronously – generators are opt-in.
 
 ## Minimal 3D Game
 
@@ -181,5 +183,5 @@ Shader::use('unlit');
 ```
 
 ::: warning Key edges are consumed on read
-`Input::isKeyPressed()` and `isKeyReleased()` report the *edge* (this frame's press / release) and **consume it on read** — only the first system that reads a given key in a frame sees `true`; later reads that frame get `false`. So if two systems both react to the same key, register the higher-priority one first. For continuous "is it held down" checks use `isKeyDown()`, which does not consume. When handing control back from a modal (e.g. closing a menu), call `Input::clearKeyEdges()` so a stale press doesn't leak into gameplay.
+`Input::isKeyPressed()` and `isKeyReleased()` report the *edge* (this frame's press / release) and **consume it on read** – only the first system that reads a given key in a frame sees `true`; later reads that frame get `false`. So if two systems both react to the same key, register the higher-priority one first. For continuous "is it held down" checks use `isKeyDown()`, which does not consume. When handing control back from a modal (e.g. closing a menu), call `Input::clearKeyEdges()` so a stale press doesn't leak into gameplay.
 :::

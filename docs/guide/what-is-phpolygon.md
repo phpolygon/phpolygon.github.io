@@ -12,19 +12,18 @@
 
 ## Production Status
 
-The **2D renderer** is production-ready with VIO as the primary backend (Metal/Vulkan/D3D12 via php-vio) and NanoVG/OpenGL as fallback (via php-glfw). [Code Tycoon](https://store.steampowered.com/app/4347780/Code_Tycoon/) is the first game built with PHPolygon's 2D pipeline.
-
-The **3D renderer** is in active development with multiple backend options. [Code Rescue](/showcase) is the first 3D game built on it (in development, via php-vio).
+The **2D and 3D renderers** are in production with php-vio as the primary backend on every platform (Metal, D3D11/D3D12, Vulkan or OpenGL, chosen by php-vio). NanoVG/OpenGL via php-glfw and standalone Vulkan via php-vulkan remain as fallbacks where php-vio is unavailable. Games shipped on the engine are listed in the [Showcase](/showcase).
 
 ## Render Backends
 
 | Backend | Status | Target |
 |---|---|---|
-| OpenGL 4.1 via php-glfw (2D/NanoVG) | **Production** | 2D games |
-| OpenGL 4.1 via php-glfw (3D) | In development | 3D games |
-| Metal via php-glfw (MoltenVK) | In development | 3D games (macOS) |
-| Vio (hardware) | **Production** | 2D + 3D |
-| Vulkan via php-vulkan | Phase 8 | 3D production |
+| php-vio (2D + 3D unified) | **Production** | Every platform; php-vio dispatches to Metal (macOS), D3D11/D3D12 (Windows), Vulkan or OpenGL |
+| OpenGL via php-glfw (2D/NanoVG) | Fallback | 2D when php-vio is unavailable (GL 3.0-4.6 ladder) |
+| OpenGL via php-glfw (3D) | Fallback | 3D when php-vio is unavailable (GL 3.0-4.6 ladder, feature-tiered) |
+| Vulkan via php-vulkan | Standalone | Native Vulkan 3D when php-vio is not loaded, or opted in via `useNative3D` |
+
+The former standalone Metal renderer is retired; php-vio's Metal backend is the macOS path.
 
 ## Architecture Overview
 
@@ -33,10 +32,10 @@ Game Code / Scene
       ↓  (builds)
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
-┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ VioRenderer3D  │ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │ NullRenderer3D │
-│  (primary)     │    (fallback)    │ (macOS/MoltenVK) │    (planned)     │ (headless/CI)  │
-└──────────────────┴──────────────────┴───────────────┴──────────────────┴────────────────┘
+┌────────────────┬──────────────────┬──────────────────┬────────────────┐
+│ VioRenderer3D  │ OpenGLRenderer3D │ VulkanRenderer3D │ NullRenderer3D │
+│   (primary)    │    (fallback)    │   (standalone)   │ (headless/CI)  │
+└────────────────┴──────────────────┴──────────────────┴────────────────┘
 ```
 
 Games are built in separate repositories and require `phpolygon/phpolygon` via Composer.
@@ -45,27 +44,30 @@ Games are built in separate repositories and require `phpolygon/phpolygon` via C
 
 Beyond rendering, PHPolygon includes:
 
-- **Audio** - multi-channel audio with Master/Music/SFX/UI/Voice channels
-- **Physics** - 2D and 3D collision detection with BVH acceleration, rigid bodies, character controllers, hinge and linear joints
+- **Audio** - multi-channel audio with Master/Music/SFX/UI/Voice channels, ducking, a stem player, offline DSP and codecs (WAV, FLAC, Ogg Opus, Ogg Vorbis)
+- **Speech synthesis** - offline voice lines from the translation files with cloned voices ([Speech Synthesis](/guide/speech))
+- **Physics** - 2D and 3D collision detection with BVH acceleration, rigid bodies, character controllers, hinge and linear joints, raycasts and line-of-sight queries
+- **Networking** - transports (Steam relay, TCP sockets, loopback), host/client sessions and a serializable command bus
 - **Save system** - slot-based save/load with autosave support
 - **Scene management** - scene loading (single/additive), lifecycle events, prefab registry, JSON scene transpiler
-- **Input mapping** - action and axis bindings for keyboard, mouse, and gamepad
+- **Input mapping** - action and axis bindings for keyboard, mouse, and gamepad, with player rebinding
 - **Environment** - day/night cycle, weather (rain/snow/storm), seasons, atmospheric simulation, wind
 - **Prefabs** - procedural builders for doors, furniture, roofs, palm trees
 - **Threading** - parallel subsystems for physics, audio, AI, and asset streaming via `ext-parallel`
-- **Localization** - locale management with fallback chains
+- **Localization** - locale management with fallback chains, start language from Steam or the system
 - **UI** - immediate-mode and retained-mode widget toolkit
 
 ## Distribution
 
-Games compile to standalone executables with an embedded PHP runtime:
+Games compile to standalone executables with an embedded PHP runtime - the static-php-cli
+`micro.sfx` runtime and the game PHAR combined into one binary (on macOS the PHAR sits beside the
+binary in the `.app`). See [Building & Distribution](/guide/building).
 
 ```
-game-binary          ← native launcher
-runtime/php          ← static PHP binary (all extensions included)
-game.phar            ← engine + game logic (Opcache bytecode)
-assets/              ← sounds, JSON scenes, UI layouts
-resources/           ← shaders (GLSL + SPIR-V), fonts
+<game executable>    ← micro.sfx runtime + embedded php.ini + game PHAR (engine + game code)
+assets/              ← extracted once per build: sounds, JSON scenes, UI layouts
+resources/           ← extracted once per build: shaders, fonts
+<external paths>     ← build.json resources.external, shipped loose (audio, video)
 saves/               ← user data (JSON)
 mods/                ← open: PHP + assets
 ```

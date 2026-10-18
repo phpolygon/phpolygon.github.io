@@ -13,8 +13,24 @@ $engine = new Engine(new EngineConfig(headless: true));
 |---|---|---|
 | `VioWindow` | `Window` (GLFW) | `NullWindow` (no-op) |
 | `VioRenderer2D` | `Renderer2D` (NanoVG/OpenGL) | `NullRenderer2D` (no output) |
-| `VioRenderer3D` | `Renderer3D` (OpenGL/Metal/Vulkan) | `NullRenderer3D` (stores commands) |
+| `VioRenderer3D` | `OpenGLRenderer3D` / `VulkanRenderer3D` | `NullRenderer3D` (stores commands) |
 | `VioTextureManager` | `TextureManager` (GL textures) | `NullTextureManager` (dummy textures) |
+| `VioAudioBackend` | `GLFWAudioBackend` | no audio |
+
+## Offscreen Mode
+
+`EngineConfig::$offscreen` is different from headless: the real Vio backends render, but into an
+invisible surface (php-vio `headless`) - for screenshot tests and offline rendering. It renders on
+the hardware GPU (`offscreenHardware`, default `true`) and falls back to the D3D software adapter
+(WARP) only when no hardware context opens. Set `offscreenHardware: false` for images that must
+match across machines.
+
+```php
+$engine = new Engine(new EngineConfig(offscreen: true, offscreenHardware: false, is3D: true));
+```
+
+Shader animation time follows the simulated time, not the frame count; screenshot tests pin it
+with `Engine::setAnimationTime()`.
 
 ## 3D Scene Testing
 

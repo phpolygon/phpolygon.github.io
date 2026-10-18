@@ -61,7 +61,7 @@ new DrawMesh(
 
 Draw many copies of one mesh+material in a single GPU call. Has two equally valid storage modes.
 
-**Mat4 mode** (default) — hand in `Mat4[]`, convenient when the caller already builds matrices:
+**Mat4 mode** (default) – hand in `Mat4[]`, convenient when the caller already builds matrices:
 
 ```php
 new DrawMeshInstanced(
@@ -72,7 +72,7 @@ new DrawMeshInstanced(
 )
 ```
 
-**Flat mode** — for hot paths (particles, thousands of instances), build the command from a pre-flattened, column-major `float[]` of length `instanceCount * 16`. The renderer uploads it directly, skipping the per-instance flatten loop (~6× fewer allocations):
+**Flat mode** – for hot paths (particles, thousands of instances), build the command from a pre-flattened, column-major `float[]` of length `instanceCount * 16`. The renderer uploads it directly, skipping the per-instance flatten loop (~6× fewer allocations):
 
 ```php
 DrawMeshInstanced::flat(
@@ -84,7 +84,7 @@ DrawMeshInstanced::flat(
 )
 ```
 
-Both modes feed the same pipeline; backends read `hasFlatMatrices()` to pick the buffer and `effectiveInstanceCount()` for the count. Set `isStatic: true` when the transforms never change — the instance buffer is then cached on first upload and reused every frame.
+Both modes feed the same pipeline; backends read `hasFlatMatrices()` to pick the buffer and `effectiveInstanceCount()` for the count. Set `isStatic: true` when the transforms never change – the instance buffer is then cached on first upload and reused every frame.
 
 ### SetSkybox
 
@@ -186,7 +186,7 @@ new SetFieldtracing(
 
 ### SetFieldtracingVolume
 
-Provide the baked Signed Distance Field volume the trace pass samples (the `SdfOcclusion` / `SdfBounce` tiers). The renderer uploads it to a GPU 3D texture and re-uploads only when `version` changes, so it can be emitted every frame cheaply — a static world bumps the version once.
+Provide the baked Signed Distance Field volume the trace pass samples (the `SdfOcclusion` / `SdfBounce` tiers). The renderer uploads it to a GPU 3D texture and re-uploads only when `version` changes, so it can be emitted every frame cheaply – a static world bumps the version once.
 
 ```php
 new SetFieldtracingVolume(
@@ -205,7 +205,7 @@ Produce `data` with `\PHPolygon\Fieldtracing\Volume\SdfVolume::toRgba8()`. Backe
 
 ### SetFieldtracingProbes
 
-Provide the baked **coloured** irradiance probe field the `ProbesOnly` (and higher) tiers sample for directional ambient GI. The field is SH-L1: one RGBA8 3D texture per colour channel, each holding that channel's four spherical-harmonic coefficients (`R=c0, G=c1, B=c2, A=c3`) signed-encoded over `[-range, +range]`. The mesh shader reconstructs `E_rgb(n) = c0 + c1*n.x + c2*n.y + c3*n.z` per channel — the 1-bounce term is baked in.
+Provide the baked **coloured** irradiance probe field the `ProbesOnly` (and higher) tiers sample for directional ambient GI. The field is SH-L1: one RGBA8 3D texture per colour channel, each holding that channel's four spherical-harmonic coefficients (`R=c0, G=c1, B=c2, A=c3`) signed-encoded over `[-range, +range]`. The mesh shader reconstructs `E_rgb(n) = c0 + c1*n.x + c2*n.y + c3*n.z` per channel – the 1-bounce term is baked in.
 
 ```php
 new SetFieldtracingProbes(

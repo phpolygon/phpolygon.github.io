@@ -33,11 +33,14 @@ The **2D renderer** is production-ready with VIO as the primary backend and Nano
 
 | Backend | Class | Status | Notes |
 |---|---|---|---|
-| OpenGL 4.1 | `OpenGLRenderer3D` | In development | Primary 3D backend, all platforms |
-| Metal (MoltenVK) | `MetalRenderer3D` | In development | macOS-native via php-glfw's Metal support |
-| Vio (hardware) | `VioRenderer3D` | **Production** | Primary 3D backend via php-vio |
-| Vulkan | `VulkanRenderer3D` | Phase 8 | High-performance production backend |
+| Vio (hardware) | `VioRenderer3D` | **Production** | Primary 3D backend on every platform. php-vio dispatches to Metal (macOS), D3D11 / D3D12 (Windows), Vulkan or OpenGL; `vio_backend_name()` tells which |
+| OpenGL | `OpenGLRenderer3D` | Fallback | via php-glfw when php-vio is unavailable. Context ladder GL 4.6 down to a GL 3.0 floor; GPU instancing and the post-process chain need GL 3.3 and degrade below it |
+| Vulkan | `VulkanRenderer3D` | Standalone | via php-vulkan, when php-vio is not loaded or `EngineConfig::$useNative3D` opts in |
 | Null | `NullRenderer3D` | Available | Headless/CI testing - stores commands for assertions |
+
+The former standalone Metal renderer is retired: php-vio's own Metal backend is the macOS path, so
+`renderBackend3D: 'metal'` lands in `VioRenderer3D`. Direct3D 11/12 are reached only through
+php-vio.
 
 **2D Renderers:**
 
@@ -62,7 +65,7 @@ Benchmarked on Apple M2 Pro (1280x720, VSync off). Measures draw + flush time on
 
 Metal is slightly slower on simple scenes but **20% faster on heavy scenes** with 1000+ draw calls. Tail latency (p95/p99) is **30-40% better** with Metal, meaning fewer frame time spikes.
 
-On Intel Macs the difference is more dramatic because macOS translates OpenGL calls through a Metal compatibility layer — using Metal directly eliminates this overhead.
+On Intel Macs the difference is more dramatic because macOS translates OpenGL calls through a Metal compatibility layer – using Metal directly eliminates this overhead.
 
 ::: tip Backend Auto-Selection
 The engine auto-detects available backends at startup:
@@ -70,10 +73,11 @@ The engine auto-detects available backends at startup:
 ```
 if extension_loaded('vio') && !headless:
     → VioWindow, VioInput, VioRenderer2D, VioRenderer3D, VioTextureManager, VioAudioBackend
-    → VIO internally selects: Metal (macOS) > Vulkan (Linux) > D3D12/D3D11 (Windows) > OpenGL
+    → vio_create('auto') picks the platform's best backend (EngineConfig::$vioBackend overrides):
+      Metal on macOS, D3D12 / D3D11 on Windows, Vulkan on Linux, OpenGL as fallback
 else:
     → GLFW Window, GLFW Input, NanoVG Renderer2D
-    → 3D backend from config: 'opengl' | 'vulkan' | 'metal' | 'null'
+    → 3D backend from config: 'opengl' | 'vulkan' | 'null'
 if headless:
     → NullWindow, NullRenderer2D, NullRenderer3D, NullTextureManager
 ```

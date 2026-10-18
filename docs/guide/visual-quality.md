@@ -206,7 +206,27 @@ ScreenSpaceReflections::High   // mirror-like wet surfaces
 $s->with(antiAliasing: AntiAliasing::Taa)
 ```
 
-Halton-sequence sub-pixel jitter + history reprojection. Cleans up specular shimmer and high-frequency normal-pattern aliasing better than FXAA without the cost of MSAA. Falls back to FXAA when the backend cannot allocate a history target.
+Sub-pixel jitter + history reprojection. Cleans up specular shimmer and high-frequency normal-pattern aliasing better than FXAA without the cost of MSAA.
+
+On Vio the temporal path needs MRT and sampled render-target depth (`VIO_FEATURE_MRT`, `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE`; gated per feature, not per php-vio version). The mesh shader then also writes motion vectors and a reactive mask, a resolve pass reconstructs with a Catmull-Rom history and a variance clip, and RCAS sharpens the result (`upscaleSharpness`). History resets on a camera cut (`SetCamera::$cut`), resize and settings changes. Without the features TAA falls back to FXAA.
+
+Debug views: `PHPOLYGON_VIO_DEBUG_VIEW=motion|reactive|depth|history`; `PHPOLYGON_VIO_TEMPORAL=0` switches the temporal path off.
+
+### Upscalers
+
+```php
+$s->with(renderScale: 0.67, upscaler: Upscaler::Taau, upscaleQuality: UpscaleQuality::Quality)
+```
+
+| `Upscaler` | What it is |
+|---|---|
+| `Off` | Bilinear stretch when `renderScale < 1` |
+| `Fsr1` | AMD FSR 1 (EASU + RCAS), spatial |
+| `Taau` | The engine's own temporal upscaler (TAA resolve at display size) |
+| `Fsr3` | AMD FSR 3.1 through php-vio's native upscaler API (D3D12 / Vulkan) |
+| `Dlss` | NVIDIA DLSS Super Resolution through php-vio's DLSS plugin (D3D12 / Vulkan, NVIDIA RTX) |
+
+`UpscaleQuality` presets (`NativeAa`, `Quality`, `Balanced`, `Performance`, `UltraPerformance`, `Custom`) set the render size for the temporal upscalers. Native upscalers are offered only when php-vio reports `VIO_FEATURE_UPSCALER_NATIVE` and the provider is supported; otherwise `GraphicsCapabilities` carries the reason and the chain falls back (`Upscaler::fallbackChain()`). The runtimes ship with the game through `build.json` `upscalers` (see [Building](/guide/building#native-upscaler-runtimes)).
 
 ### Volumetric Fog
 
@@ -224,11 +244,11 @@ Per-fragment ray-march in screen space with the directional light. Exits are ear
 | `Fxaa` (default) | low | Cheap fullscreen post |
 | `Msaa2x` | medium | 2x raster samples |
 | `Msaa4x` | high | 4x raster samples |
-| `Taa` | medium | Halton jitter + history reprojection |
+| `Taa` | medium | Jitter + history reprojection (Vio: motion vectors, falls back to FXAA without MRT) |
 
 ## Fieldtracing (SDF Global Illumination)
 
-Fieldtracing sphere-traces a baked **Signed Distance Field** of the world for diffuse global illumination, soft contact shadows and ambient occlusion. It *augments* the forward stack (shadow maps, SSAO, SSR, ACES) — it does not replace it. Because the SDF/probe bake cost dominates any frame-time gain, the tier is a deliberate settings choice and is **not** part of the adaptive hot-swap stack.
+Fieldtracing sphere-traces a baked **Signed Distance Field** of the world for diffuse global illumination, soft contact shadows and ambient occlusion. It *augments* the forward stack (shadow maps, SSAO, SSR, ACES) – it does not replace it. Because the SDF/probe bake cost dominates any frame-time gain, the tier is a deliberate settings choice and is **not** part of the adaptive hot-swap stack.
 
 ```php
 use PHPolygon\Rendering\Quality\FieldtracingMode;
@@ -245,15 +265,15 @@ $engine->graphics->update(fn(GraphicsSettings $s) => $s->with(
 | `SdfOcclusion` | + SDF ambient occlusion + soft SDF shadows | mid desktop |
 | `SdfBounce` | + 1-bounce diffuse GI | high-end desktop |
 
-The mode is evaluated against backend capability flags (`vio_supports_feature`). A backend that cannot satisfy the requested tier **silently degrades** to the highest one it can run (`SdfBounce → SdfOcclusion → ProbesOnly → Off`) — it never crashes.
+The mode is evaluated against backend capability flags (`vio_supports_feature`). A backend that cannot satisfy the requested tier **silently degrades** to the highest one it can run (`SdfBounce → SdfOcclusion → ProbesOnly → Off`) – it never crashes.
 
 ### Feeding the bake
 
 The trace pass needs the baked data uploaded once per world via three render commands (see [Render Commands](/api/render-commands#setfieldtracing)):
 
-- **`SetFieldtracing`** — per-frame mode/intensity/AO-radius.
-- **`SetFieldtracingVolume`** — the RGBA8 SDF volume (3D texture) for the `SdfOcclusion` / `SdfBounce` tiers.
-- **`SetFieldtracingProbes`** — the coloured SH-L1 irradiance field (three 3D textures) for `ProbesOnly` and up.
+- **`SetFieldtracing`** – per-frame mode/intensity/AO-radius.
+- **`SetFieldtracingVolume`** – the RGBA8 SDF volume (3D texture) for the `SdfOcclusion` / `SdfBounce` tiers.
+- **`SetFieldtracingProbes`** – the coloured SH-L1 irradiance field (three 3D textures) for `ProbesOnly` and up.
 
 Both data commands carry a `version`; the renderer re-uploads the GPU 3D textures only when it changes, so a static world bakes once and emits the cached command every frame for free. The volume/probe data is produced by the `PHPolygon\Fieldtracing\Volume` bakers (e.g. `SdfVolume::toRgba8()`); a parallel CPU bake at scene load keeps it off the hot path.
 
@@ -310,7 +330,7 @@ $engine->graphics->update(fn(GraphicsSettings $s) => $s->with(targetFps: 60.0));
 | Particles | ✅ | ✅ | ✅ | - |
 | FXAA / MSAA | ✅ | ✅ | ✅ | ✅ |
 
-The OpenGL / Vio / Metal trio is the production target. The Vulkan backend keeps a minimal compatibility path so the engine still runs in environments where vio is unavailable and Vulkan is the only option (older Linux setups).
+Vio is the production target (it covers Metal, D3D11/D3D12, Vulkan and OpenGL through php-vio); the Metal column describes the former standalone Metal renderer, which is retired - on macOS the Vio column applies. The Vulkan backend keeps a minimal compatibility path so the engine still runs in environments where vio is unavailable and Vulkan is the only option (older Linux setups).
 
 ## Reference
 

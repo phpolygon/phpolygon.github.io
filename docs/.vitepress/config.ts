@@ -40,6 +40,7 @@ export default defineConfig({
             { text: 'Procedural Geometry', link: '/guide/geometry' },
             { text: 'Physics', link: '/guide/physics' },
             { text: 'Audio', link: '/guide/audio' },
+            { text: 'Speech Synthesis', link: '/guide/speech' },
             { text: 'UI System', link: '/guide/ui' },
             { text: 'Saving & Loading', link: '/guide/saving' },
             { text: 'Localization', link: '/guide/localization' },

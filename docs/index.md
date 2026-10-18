@@ -26,11 +26,11 @@ features:
   - title: Procedural Geometry
     details: Meshes generated programmatically. Composite generators (Lathe, Sweep, SpokedRim), an SVG-to-PHP pipeline that turns 2D outlines into committable mesh classes, plus a one-time OBJ/STL/glTF import bake in the editor.
   - title: Visual Quality Stack
-    details: PBR + procedural normal/surface patterns, AO, ACES tone mapping, color grading, vignette, vol-fog, area lights, GPU particles, CSM shadows, SSR, TAA. All across OpenGL, Metal, and Vio.
+    details: "PBR + procedural normal/surface patterns, AO, ACES tone mapping, color grading, vignette, vol-fog, area lights, GPU particles, CSM shadows, SSR, TAA and temporal upscaling (TAAU, FSR 3, DLSS). Primary path: php-vio on Metal, D3D11/D3D12, Vulkan and OpenGL."
   - title: Procedural Cloth + Vehicle Prefabs
     details: Vertex-shader cloth sway driven by SetWind. Vehicle prefab system with Sedan/SUV/Cabrio/Pickup/Compact variants composed from procedural primitives.
   - title: Multi-Backend Rendering
-    details: "2D: Vio (production), NanoVG/OpenGL (fallback). 3D: Vio, OpenGL, Metal, Vulkan. Backend-agnostic RenderCommandList architecture."
+    details: "2D + 3D: php-vio (production; Metal, D3D11/D3D12, Vulkan, OpenGL). Fallbacks: NanoVG/OpenGL via php-glfw, standalone Vulkan. Backend-agnostic RenderCommandList architecture."
   - title: Ship Everywhere
-    details: Build to standalone executables  - macOS .app, Linux AppImage, Windows installer. Single binary with embedded PHP runtime.
+    details: Build standalone executables for Windows, Linux, macOS (universal .app) and iOS - one binary with embedded PHP runtime, cross-built in Docker and uploaded to Steam in one run.
 ---
