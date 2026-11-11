@@ -1,6 +1,6 @@
 # Visual Quality
 
-PHPolygon ships a player-facing visual-quality system that stacks PBR foundations, procedural patterns, and atmospheric effects on top of the standard render pipeline. The whole stack is orthogonal to existing render-scale / shadow / AA work, reuses the same off-screen pipeline, and is wired across the OpenGL, Vio, and Metal backends. Vulkan keeps a minimal compatibility path.
+PHPolygon ships a player-facing visual-quality system that stacks PBR foundations, procedural patterns, and atmospheric effects on top of the standard render pipeline. The whole stack is orthogonal to existing render-scale / shadow / AA work and reuses the same off-screen pipeline. The production path is `VioRenderer3D` (php-vio on Metal, D3D11/D3D12, Vulkan or OpenGL); the standalone OpenGL renderer carries most of the stack, the standalone Vulkan renderer a minimal compatibility path.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -46,6 +46,8 @@ $engine->graphics->update(fn(GraphicsSettings $s) => $s->with(
 ::: warning Always go through the engine
 Never mutate `GraphicsSettings` fields directly or call `$renderer3D->applySettings()` from game code. The immutable round-trip is what keeps change events deterministic and persistent.
 :::
+
+Every field with its default, the accessibility options, calibration, the tour benchmark and the hardware capabilities are covered in [Graphics Settings](/guide/graphics-settings).
 
 ## Phase A: PBR Foundation
 
@@ -102,27 +104,29 @@ Available patterns: `WORN_PAINT`, `RUST`, `BRUSHED_METAL`, `POLISHED_RINGS`.
 use PHPolygon\Rendering\Quality\ScreenSpaceAO;
 
 ScreenSpaceAO::Off       // disabled
-ScreenSpaceAO::Low       // 4-tap, half-resolution
-ScreenSpaceAO::Medium    // 8-tap, full-resolution (default)
-ScreenSpaceAO::High      // 16-tap with bilateral blur
+ScreenSpaceAO::Low       // curvature term only, strength 0.4
+ScreenSpaceAO::Medium    // strength 0.7 + SSAO pass (default)
+ScreenSpaceAO::High      // strength 1.0 + SSAO pass
 ```
 
-Curvature-based AO derived from screen-space normal derivatives. Free with the existing depth pre-pass.
+Two contributions are layered. Every tier above `Off` darkens corners and crevices with a curvature term derived from screen-space normal derivatives. At `Medium` and `High` the Vio renderer adds a depth + normal SSAO pass (G-buffer, hemisphere kernel, blur) on Direct3D 11/12, Vulkan and Metal; php-vio's OpenGL backend keeps the curvature term alone. `temporalSsao` accumulates the SSAO over frames while the camera holds still.
 
 ### ACES Tone Mapping
 
-Every mesh-shader exit path runs ACES filmic before gamma. Replaces the previous gamma-only output and gives midtones noticeably more punch. No setting - always on.
+Every mesh-shader exit path runs a filmic tone curve before gamma; ACES is the default. A game can change the image chain per frame with the `SetImageLook` command and an `ImageLook` (exposure and auto exposure, `Tonemapper::Aces` or `Tonemapper::Sigmoid`, bloom chain, colour LUTs, grain, sharpening).
 
 ### Cascade Shadow Maps
 
-| `ShadowQuality` | Cascades | Tap pattern |
-|---|---|---|
-| `Off` | 0 | hard shadows |
-| `Low` | 2 cascades | 1-tap |
-| `Medium` (default) | 3 cascades | 4-tap PCF |
-| `High` | 4 cascades | 9-tap PCF |
+| `ShadowQuality` | Shadow map resolution |
+|---|---|
+| `Off` | no shadow pass |
+| `Low` | 1024 |
+| `Medium` (default) | 2048 |
+| `High` | 4096 |
 
-Shadow camera follows the player and snaps to texels to suppress shimmer. `shadowDistance` controls the far-cascade reach.
+The Vio renderer centres its three shadow cascades on the camera position of the frame. `shadowDistance` is stored and round-tripped, but no renderer reads it at present.
+
+Point and spot lights can cast shadows too (`castsShadow: true` on `PointLight` / `SpotLight`).
 
 ## Phase B: Stylisation + Materials
 
@@ -184,21 +188,21 @@ Reduces effective roughness, darkens albedo, and amplifies IBL contribution on u
 
 ### IBL Environment Maps
 
-`MetalCubemapTarget` (Metal) and the OpenGL cubemap pipeline render the sky into a 6-face cubemap once per `SetSky` change. Carpaint, chrome, and `useEnvironmentMap: true` materials sample it for reflection. Re-renders are skipped when the sky hash hasn't changed - typically a one-time cost at scene load.
+The renderer renders the sky into a 6-face environment cubemap once per `SetSky` change. Carpaint, chrome, and `useEnvironmentMap: true` materials sample it for reflection. Re-renders are skipped when the sky hash hasn't changed - typically a one-time cost at scene load.
 
 ## Phase C: Atmospheric / Dynamic
 
 ### Screen Space Reflections (SSR)
 
-Forward-renderer compatible SSR surrogate. `wetness` on individual materials drives a per-fragment IBL amplification; the global `ssr` setting controls how aggressively this amplification reads.
-
 ```php
 use PHPolygon\Rendering\Quality\ScreenSpaceReflections;
 
-ScreenSpaceReflections::Off    // no amplification
-ScreenSpaceReflections::Low    // mild boost
-ScreenSpaceReflections::High   // mirror-like wet surfaces
+ScreenSpaceReflections::Off    // wetness surrogate only
+ScreenSpaceReflections::Low
+ScreenSpaceReflections::High
 ```
+
+On the Vio renderer the `Low` and `High` tiers run a ray-marched pass against the G-buffer and the HDR scene colour on Direct3D 11/12, Vulkan and Metal. With the tier `Off`, and on php-vio's OpenGL backend, the `wetness` of individual materials amplifies their IBL contribution instead (the surrogate described above).
 
 ### Temporal Anti-Aliasing (TAA)
 
@@ -234,7 +238,11 @@ $s->with(renderScale: 0.67, upscaler: Upscaler::Taau, upscaleQuality: UpscaleQua
 $s->with(volumetricFog: true)
 ```
 
-Per-fragment ray-march in screen space with the directional light. Exits are early-outed at scene-fog far-distance so the overhead is negligible in clear weather and ramps with `Weather::fogIntensity`.
+A short ray-march along the view ray with the primary directional light. Each step samples the cascade shadow map, so air the light does not reach - a room, the shadow of a building - scatters nothing. `DirectionalLight::$volumetricScale` (0..1) scales what a light scatters; the day/night system lowers it for moonlight (`DayNightCycle::$moonScattering`).
+
+With `froxelFog: true` (and `volumetricFog` on) the fog light is computed once per frame in a view-space grid instead of a march per pixel; it needs a backend that samples scene depth.
+
+`HeightFog`, `FogVolume` (a local box of fog) and `HeatSource` (heat haze) are components for fog that belongs to a place rather than to the whole scene.
 
 ### Anti-Aliasing Tiers
 
@@ -311,27 +319,57 @@ $engine->graphics->setMode(QualityMode::Adaptive);
 $engine->graphics->update(fn(GraphicsSettings $s) => $s->with(targetFps: 60.0));
 ```
 
+## Lights
+
+| Component | What it is |
+|---|---|
+| `DirectionalLight` | Sun / moon; `volumetricScale` sets its share of the volumetric fog |
+| `PointLight` | `color`, `intensity`, `radius`, optional `castsShadow` |
+| `SpotLight` | `direction`, `range`, `angle`, `penumbra`, optional `castsShadow` |
+| `RectAreaLight` | One-sided rectangular area light (`width`, `depth`, `range`) |
+| `EmissiveAreaLight` | Lets an emissive material light its surroundings (`materialId`, `radius`) |
+| `LightCone` | Visible beam of the `SpotLight` on the same entity (register `LightConeSystem`) |
+
+`Renderer3DSystem` gives light slots to the lights whose sphere of influence touches the view, nearest first. On backends that support the world light grid, `VioRenderer3D` shades far more point lights than the classic eight.
+
+## Opt-in Renderer Paths
+
+These are off by default and ignored where the hardware or php-vio lacks the feature; `$engine->graphics->capabilities()` tells a settings screen what can run (see [Graphics Settings](/guide/graphics-settings#hardware-capabilities)).
+
+| Setting | Effect | Needs |
+|---|---|---|
+| `rayTracedShadows`, `rayTracedReflections`, `rayTracedProbes`, `rayTracedGi` | Ray-traced sun shadows, reflections on smooth surfaces, probe-field update, one-bounce diffuse light | `VIO_FEATURE_RAY_QUERY` |
+| `meshShaders` | Instanced opaque batches drawn as frustum-culled meshlets | `VIO_FEATURE_MESH_SHADER` |
+| `occlusionCulling` | Hi-Z culling of meshlets hidden behind the depth prepass | `meshShaders` + `depthPrepass` |
+| `bindlessMaterials` | Albedo from a texture table, per-instance textures in one draw | `VIO_FEATURE_BINDLESS` |
+| `depthPrepass` | Opaque surfaces write depth first, shading then runs once per pixel | - |
+| `shadingRate`, `foveatedShading` | Variable rate shading of the scene pass, coarser at the screen edges | VRS support |
+| `screenSpaceGi`, `screenSpaceSss`, `microShadows` | Screen-space radiosity, subsurface scattering, cavity shadowing | MRT path |
+| `bakedLight` | Sky and sun visibility baked once from the SDF (`SetBakedLight`) | a baked light volume |
+| `hdrOutput`, `lowLatency` | HDR10 display output, waitable swapchain | D3D11 / D3D12 |
+
 ## Backend Support Matrix
 
-| Feature | OpenGL | Vio | Metal | Vulkan |
-|---|:-:|:-:|:-:|:-:|
-| Normal / Surface patterns | ✅ | ✅ | ✅ | minimal |
-| ACES tone mapping | ✅ | ✅ | ✅ | ✅ |
-| ScreenSpaceAO | ✅ | ✅ | ✅ | minimal |
-| Color grading + vignette | ✅ | ✅ | ✅ | minimal |
-| Cascade Shadow Maps | ✅ | ✅ | ✅ | minimal |
-| Carpaint clearcoat | ✅ | ✅ | ✅ | minimal |
-| Procedural cloth | ✅ | ✅ | ✅ | - |
-| IBL environment maps | ✅ | ✅ | ✅ | - |
-| TAA | ✅ | ✅ | ✅ | - |
-| SSR (wetness surrogate) | ✅ | ✅ | ✅ | - |
-| Volumetric fog | ✅ | ✅ | ✅ | - |
-| Fieldtracing (SDF GI) | ✅ | ✅ | hemisphere | - |
-| Particles | ✅ | ✅ | ✅ | - |
-| FXAA / MSAA | ✅ | ✅ | ✅ | ✅ |
+| Feature | Vio | OpenGL (standalone) | Vulkan (standalone) |
+|---|:-:|:-:|:-:|
+| Normal / Surface patterns | ✅ | ✅ | minimal |
+| Tone mapping | ✅ | ✅ | ✅ |
+| ScreenSpaceAO | ✅ | ✅ | minimal |
+| Color grading + vignette | ✅ | ✅ | minimal |
+| Cascade Shadow Maps | ✅ | ✅ | minimal |
+| Carpaint clearcoat | ✅ | ✅ | minimal |
+| Procedural cloth | ✅ | ✅ | - |
+| IBL environment maps | ✅ | ✅ | - |
+| TAA | ✅ | ✅ | - |
+| SSR | ✅ | ✅ | - |
+| Volumetric fog | ✅ | ✅ | - |
+| Fieldtracing (SDF GI) | ✅ | ✅ | - |
+| Particles | ✅ | ✅ | - |
+| FXAA / MSAA | ✅ | ✅ | ✅ |
+| Temporal upscaling (TAAU, FSR 3, DLSS), ray tracing, mesh shaders | ✅ (per php-vio feature) | - | - |
 
-Vio is the production target (it covers Metal, D3D11/D3D12, Vulkan and OpenGL through php-vio); the Metal column describes the former standalone Metal renderer, which is retired - on macOS the Vio column applies. The Vulkan backend keeps a minimal compatibility path so the engine still runs in environments where vio is unavailable and Vulkan is the only option (older Linux setups).
+Vio is the production target: it covers Metal, D3D11/D3D12, Vulkan and OpenGL through php-vio, and individual features are enabled per php-vio feature flag of the active backend. The standalone OpenGL and Vulkan renderers exist for environments where php-vio is unavailable; new rendering features land in `VioRenderer3D` first.
 
 ## Reference
 
-For per-tier defaults, persistence layout, calibration, and the adaptive controller's tuning knobs, see `docs/graphics-settings.md` in the engine repo.
+See [Graphics Settings](/guide/graphics-settings) for every setting with its default, persistence, calibration and the adaptive controller.

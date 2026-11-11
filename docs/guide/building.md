@@ -137,7 +137,9 @@ the targets.
 | `hooks` | `beforeBuild`, `afterPackage` |
 | `upscalers` | FSR 3 / DLSS runtimes shipped with the game (see [Native upscaler runtimes](#native-upscaler-runtimes)) |
 | `speech` | Offline voice lines (see [Speech Synthesis](/guide/speech)) |
+| `icon` | One square PNG for every platform's application icon (see [Application icon](#application-icon)) |
 | `platforms.macos` | `icon`, `minimumVersion`, `launcher` (own shell launcher for the universal bundle) |
+| `platforms.windows`, `platforms.linux` | `icon`: a finished `.ico` / `.png` that replaces the generated one |
 | `platforms.ios` | iOS bundle settings |
 
 ### What ships where
@@ -159,6 +161,24 @@ the targets.
   sixth while start-up costs the same. Build PHP and runtime both need `ext-zlib` - the stub
   refuses to start without it and says so in `game.log`. The engine's runtimes carry zlib; for any
   other runtime set `"none"`.
+
+## Application icon
+
+`icon` in `build.json` names one square PNG (at least 256 px, 1024 recommended). The build makes every platform's icon from it in plain PHP - no GD, no Apple or Windows tools - so a Windows or macOS target gets its icon on any build host, Docker included.
+
+```json
+"icon": "resources/icon.png"
+```
+
+```json
+"icon": { "source": "resources/icon.png", "small": "resources/icon-16.png" },
+"platforms": { "windows": { "icon": "art/app.ico" }, "macos": { "icon": "art/app.icns" }, "linux": { "icon": "art/app.png" } }
+```
+
+- `small` (optional) is a square PNG drawn for small sizes; it is used for every size up to 32 px.
+- `platforms.<os>.icon` (optional) replaces what `source` would give that platform: a finished `.ico` (Windows), `.icns` or `.png` (macOS), `.png` (Linux).
+- **Windows:** the icon resources are written into the executable. **macOS:** `Contents/Resources/AppIcon.icns`. **Linux:** `<identifier>.png`, `.DirIcon` and `<identifier>.desktop` at the package root (the AppDir layout; the engine builds no AppImage itself).
+- **Window icon:** the build also stages an icon set that the engine applies right after the window opens (php-vio 2.41 or newer; older versions keep the default window icon). `EngineConfig::$windowIcon` overrides it: `null` = the build's set, `''` = none, a path = a square PNG for development.
 
 ## Embedded php.ini
 

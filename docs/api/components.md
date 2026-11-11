@@ -10,7 +10,15 @@ All components extend `AbstractComponent` and use `#[Serializable]` for automati
 | `Camera3DComponent` | `fov: float`, `near: float`, `far: float`, `projectionType: ProjectionType`, `active: bool` | Projection settings |
 | `MeshRenderer` | `meshId: string`, `materialId: string`, `castShadows: bool` | Renderable mesh |
 | `DirectionalLight` | `direction: Vec3`, `color: Color`, `intensity: float` | Sun/moon light |
-| `PointLight` | `color: Color`, `intensity: float`, `radius: float` | Positional light |
+| `PointLight` | `color: Color`, `intensity: float`, `radius: float`, `castsShadow: bool` | Positional light |
+| `SpotLight` | `direction: Vec3`, `color: Color`, `intensity: float`, `range: float`, `angle: float`, `penumbra: float`, `castsShadow: bool` | Cone light |
+| `RectAreaLight` | `width: float`, `depth: float`, `color: Color`, `intensity: float`, `range: float` | One-sided rectangular area light |
+| `EmissiveAreaLight` | `materialId: string`, `radius: float`, `scale: float` | An emissive material that lights its surroundings |
+| `AmbientLight` | `color: Color`, `intensity: float` | Scene ambient light |
+| `LightCone` | `density`, `length`, `edgeSoftness`, `axisFade`, `maxDistance`, `enabled` | Visible beam of the `SpotLight` on the same entity |
+| `Outline` | `enabled: bool`, `color: Color`, `widthPx: float`, `includeChildren: bool` | Screen-space outline around the entity's mesh |
+| `SurfaceText` | `text` or `textKey`, `width`, `height`, `color`, `background`, `fontId` | Text fixed on a surface in world space, by literal or translation key |
+| `WorldText` | `text`, `fontSize`, `color`, `maxDistance` | Screen-facing label at a world position |
 
 ## 2D Components
 
@@ -54,7 +62,30 @@ All components extend `AbstractComponent` and use `#[Serializable]` for automati
 | Component | Key Properties | Purpose |
 |---|---|---|
 | `PalmSway` | `swayStrength`, `phaseOffset`, `isTrunk: bool` | Wind-driven sway for vegetation |
-| `ParticleEmitter` | `emissionRate`, `lifetime`, `velocity`, `gravity`, `size`, `colorStart/End` | GPU-friendly particle source (sparks, smoke, dust) |
+| `ParticleEmitter` | `rate`, `lifetime`, `velocity`, `velocityJitter`, `gravity`, `startSize/endSize`, `startColor/endColor`, `maxParticles`, `renderMode`, `spawnRadius`, `activeDistance` | GPU-friendly particle source (sparks, smoke, dust) |
+
+## Environment Volumes
+
+| Component | Key Properties | Purpose |
+|---|---|---|
+| `HeightFog` | `density`, `falloff`, `baseHeight`, `color` | Fog that thins out with height |
+| `FogVolume` | `halfExtents: Vec3`, `density`, `color`, `edge` | A local box of fog |
+| `HeatSource` | `radius`, `strength` | Heat haze above hot things |
+| `DecalVolume` | `halfExtents: Vec3`, `kind`, `color`, `strength` | Projects a decal onto the surfaces inside the box |
+| `AgingVolume` | `halfExtents: Vec3`, `age`, `edge` | Weathers the surfaces inside the box |
+| `InteriorVolume` | `halfExtents: Vec3`, `strength` | Marks an interior for the interior light mask |
+
+## Vegetation, Navigation and Motion
+
+| Component | Key Properties | Purpose |
+|---|---|---|
+| `FoliageInstances` | `variant: string` | Instanced plants of one variant (drawn by `FoliageInstanceSystem`) |
+| `GrassField` | `minX/minZ/maxX/maxZ`, `groundAt`, `mask`, `baseColor`, `tipColor`, `seed` | Area that grows grass blades near the camera |
+| `NavMeshAgent` | `speed`, `angularSpeed`, `acceleration`, `stoppingDistance`, `avoidanceRadius` | Follows NavMesh paths and authored waypoints |
+| `Signals` | `bools`, `numbers` | Named channels that drive signal motion |
+| `SignalTrack` / `SignalSpin` / `SignalSwitch` | `points`, `speed`, `runChannel` / `axis`, `speed` / `channel`, `invert` | Items moving along a track / a spinning part / a part switched by a channel |
+| `PosePlayer` | `rig`, `bindings`, `clip` | Plays pose clips onto a figure built from parts |
+| `WaterDisturber` | `kind`, `strength` | Leaves wakes or rings on the water surface |
 
 ## Terrain Components
 

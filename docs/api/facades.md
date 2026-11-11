@@ -54,8 +54,9 @@ Audio::setChannelVolume(AudioChannel::SFX, 0.8);
 Saves::save(slotIndex: 0, name: 'Quicksave', data: ['level' => 3]);
 Saves::load(slotIndex: 0);
 
-// Scene management
-Scenes::loadScene(MyScene::class);
+// Scene management: register a Scene class under a name, then load it
+Scenes::register('my_scene', MyScene::class);
+Scenes::loadScene('my_scene');
 ```
 
 ## How Facades Work

@@ -11,7 +11,7 @@ $engine = new Engine(new EngineConfig(headless: true));
 
 | Normal mode (VIO) | Normal mode (GLFW fallback) | Headless mode |
 |---|---|---|
-| `VioWindow` | `Window` (GLFW) | `NullWindow` (no-op) |
+| `VioMainWindow` | `Window` (GLFW) | `NullWindow` (no-op) |
 | `VioRenderer2D` | `Renderer2D` (NanoVG/OpenGL) | `NullRenderer2D` (no output) |
 | `VioRenderer3D` | `OpenGLRenderer3D` / `VulkanRenderer3D` | `NullRenderer3D` (stores commands) |
 | `VioTextureManager` | `TextureManager` (GL textures) | `NullTextureManager` (dummy textures) |
@@ -32,24 +32,64 @@ $engine = new Engine(new EngineConfig(offscreen: true, offscreenHardware: false,
 Shader animation time follows the simulated time, not the frame count; screenshot tests pin it
 with `Engine::setAnimationTime()`.
 
-## 3D Scene Testing
+## 3D Scene Testing with GameTestCase
 
-Test 3D scenes by inspecting the command list structurally:
+3D scenes are tested without a GPU: `NullRenderer3D` keeps the `RenderCommandList` it received, and the test inspects it structurally instead of comparing pixels. `PHPolygon\Testing\GameTestCase` is the base class for a game's own tests. It creates a fresh headless engine per test (`EngineConfig(headless: true, is3D: true)`; override `engineConfig()` to change it) and carries the helpers:
 
 ```php
-public function testPhpDistrictBuildsCorrectly(): void
+use PHPolygon\Engine;
+use PHPolygon\Rendering\Command\DrawMesh;
+use PHPolygon\Rendering\RenderCommandList;
+use PHPolygon\System\Camera3DSystem;
+use PHPolygon\System\Renderer3DSystem;
+use PHPolygon\Testing\GameTestCase;
+
+final class DistrictTest extends GameTestCase
 {
-    $engine = $this->create3DTestEngine();
-    $engine->scenes->load(PhpDistrictScene::class);
-    $engine->tick(0.016);
+    // Called once per test, before it runs: register scenes, meshes, materials, systems
+    protected function registerScenes(Engine $engine): void
+    {
+        $commands = $engine->commandList3D ?? new RenderCommandList();
+        $engine->world->addSystem(new Camera3DSystem($commands, 1280, 720));
+        $engine->world->addSystem(new Renderer3DSystem($engine->renderer3D, $commands));
 
-    $commands = $engine->renderer3d->getLastCommandList();
-    $draws = $commands->ofType(DrawMesh::class);
+        $engine->scenes->register('district', DistrictScene::class);
+    }
 
-    $this->assertCount(20, $draws);
-    $this->assertSame('cobblestone', $draws[0]->materialId);
+    public function testDistrictBuildsCorrectly(): void
+    {
+        $this->loadScene('district');
+        $this->assertSceneLoaded('district');
+        $this->assertEntityExists('district', 'Tower_0');
+        $this->tick();                        // one update step of 1/60 s
+
+        $commands = $this->renderCommands();  // what the systems submitted this frame
+        $draws = $commands->ofType(DrawMesh::class);
+
+        $this->assertCount(3, $draws);
+        $this->assertSame('cobblestone', $draws[0]->materialId);
+        $this->assertDrawsMesh('box', $commands);
+        $this->assertMeshDrawCount(3, $commands);
+        $this->assertPointLightCount(1, $commands);
+    }
 }
 ```
+
+| Helper | Purpose |
+|---|---|
+| `engineConfig()` | The `EngineConfig` of the test engine (override to change it) |
+| `registerScenes(Engine $engine)` | Hook for scene, mesh, material and system registration |
+| `loadScene(string $name)` | Load a registered scene |
+| `tick(float $dt = 1/60, int $times = 1)` | Advance the world |
+| `renderCommands()` | Render one frame and return the `RenderCommandList` the null renderer received |
+| `assertSceneLoaded()`, `assertEntityExists()`, `assertEntityCount()` | Scene and entity assertions |
+| `assertDrawsMesh()`, `assertMeshDrawCount()`, `assertPointLightCount()` | Assertions on the emitted 3D commands |
+
+`renderCommands()` returns what the game's own systems submitted (for example `Renderer3DSystem`); a scene whose world has no rendering system yields an empty list.
+
+### Pixel tests of 3D shaders
+
+Where the picture itself is the subject, the engine renders with the real backend into an invisible surface (see [Offscreen Mode](#offscreen-mode)): `VioRenderer3D::renderToImage()` renders a `RenderCommandList` into an offscreen target and reads it back, and `PHPolygon\Testing\Shader\HeadlessShaderHarness` runs GLSL against a php-vio context that shows no window. Such tests skip where no GPU context can be opened, and their baselines are per backend - keep them out of GPU-less CI and inspect the command list there instead.
 
 ## Visual Regression Testing (2D)
 

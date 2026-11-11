@@ -59,13 +59,13 @@ class GravitySystem extends AbstractSystem
 {
     public function update(World $world, float $dt): void
     {
-        foreach ($world->query(Transform3D::class, RigidBody::class) as $entity) {
+        foreach ($world->query(Transform3D::class, RigidBody3D::class) as $entity) {
             $transform = $entity->get(Transform3D::class);
-            $rb = $entity->get(RigidBody::class);
+            $rb = $entity->get(RigidBody3D::class);
 
             $rb->velocity->y -= 9.81 * $dt;
             $transform->position = $transform->position->add(
-                $rb->velocity->scale($dt)
+                $rb->velocity->mul($dt)
             );
         }
     }
@@ -80,19 +80,18 @@ class GravitySystem extends AbstractSystem
 |---|---|
 | Per-entity state and behavior | Component |
 | Cross-entity iteration and coordination | System |
-| Per-entity rendering | Component (`onRender`) |
+| Per-entity behavior each tick | Component (`onUpdate`) |
 | Scene-wide rendering pipeline | System (`Renderer3DSystem`) |
 
 ## System Phases
 
-Systems execute in defined phases via the `SystemPhase` enum:
+Systems run in the order they were added: `update()` for every system each tick, then `render()` for every system each frame. `World::addSystem($system, $phase)` takes an optional `SystemPhase`, which matters only with threaded subsystems:
 
 | Phase | When |
 |---|---|
-| `PreUpdate` | Before main update (input, physics prep) |
-| `Update` | Main game logic (gameplay, AI, animation) |
-| `Render` | After update (camera, renderer, UI) |
-| `PostUpdate` | After render (cleanup, events) |
+| `SystemPhase::MainThread` (default) | Before thread results arrive (input, camera, player movement) |
+| `SystemPhase::Threaded` | Handled by the thread scheduler, skipped on the main thread |
+| `SystemPhase::PostThread` | After thread results are applied (transform propagation) |
 
 ## Serialization
 

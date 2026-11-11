@@ -97,6 +97,45 @@ $audio->getChannelDuck(AudioChannel::Music);                       // current dB
   update tick. Tools and tests that drive an `AudioManager` outside the engine loop call it
   themselves; fade 0 applies immediately.
 
+## Spatial Audio
+
+`AudioManager` plays 3D voices against a listener. With php-vio 2.36 or newer the backend attenuates, pans, applies cones and Doppler natively, and pitch and pan change while a voice plays; with older php-vio, php-glfw or the null backend the manager computes the distance gain itself (pitch and pan then apply at start only, no Doppler). `hasNativeSpatial()` tells which path is active.
+
+```php
+use PHPolygon\Audio\AudioChannel;
+use PHPolygon\Audio\PlaybackOptions;
+use PHPolygon\Audio\Spatial\Attenuation;
+use PHPolygon\Audio\Spatial\AudioListener;
+use PHPolygon\Audio\Spatial\SoundCone;
+
+$audio = $engine->audio;
+
+// A looping source in the world: full volume within 2 units, silent beyond 40
+$id = $audio->playAt('pump', $position, AudioChannel::SFX, 0.8, loop: true,
+    attenuation: new Attenuation(2.0, 40.0), pitch: 0.9);
+
+// Everything at once: 2D with pitch and pan, or 3D with velocity, Doppler and a cone
+$audio->playWith('blip', AudioChannel::UI, new PlaybackOptions(0.5, pitch: 1.2, pan: -0.3));
+$audio->playWith('horn', AudioChannel::SFX, new PlaybackOptions(
+    position: $position, velocity: $velocity, doppler: 0.5,
+    direction: $facing, cone: SoundCone::degrees(60.0, 150.0, 0.3),
+));
+
+$audio->setPlaybackPosition($id, $movedPosition);    // a moving source
+$audio->setPlaybackPitch($id, 1.3);                  // live on the native path
+
+// The listener follows the active 3D camera (null while the world has none)
+$listener = AudioListener::fromActiveCamera($world);
+if ($listener !== null) {
+    $audio->setListener($listener);
+}
+
+$audio->pauseAll(AudioChannel::UI);                  // pause menu: everything but UI
+$audio->resumeAll();
+```
+
+Register `AudioListenerSystem` (`new AudioListenerSystem($engine->audio)`) instead of calling `setListener()` yourself each frame.
+
 ## Stem Player
 
 `StemPlayer` plays pre-rendered music stems that come and go as the game reaches marks (a

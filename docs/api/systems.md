@@ -14,6 +14,15 @@ Systems own cross-entity logic. They iterate components across multiple entities
 | `Camera2DSystem` | Updates the active 2D camera |
 | `InstancedTerrainSystem` | Renders instanced terrain via `DrawMeshInstanced` commands |
 | `UISystem` | Manages UI layers and widget rendering |
+| `OutlineSystem` | Emits `DrawOutline` for every enabled `Outline`; register before `Renderer3DSystem` |
+| `LightConeSystem` | Draws the visible beam of every lit `LightCone` + `SpotLight` in view |
+| `SurfaceTextSystem` | Keeps every `SurfaceText` on its current text and language |
+| `FoliageInstanceSystem` | Draws `FoliageInstances` as static instanced batches |
+| `GrassSystem` | Grass blades of every `GrassField` near the camera |
+| `ParticleSystem` | Simulates and draws `ParticleEmitter` entities |
+| `WaterDisturbanceSystem` | Wake trails and swimmer rings of every `WaterDisturber` |
+
+The systems in the lower half of this table read the camera of the frame: register them after `Camera3DSystem` and before `Renderer3DSystem`.
 
 ### Physics
 
@@ -36,6 +45,14 @@ Systems own cross-entity logic. They iterate components across multiple entities
 | `EnvironmentalSystem` | Base environmental simulation |
 | `AtmosphericEnvironmentalSystem` | Extends EnvironmentalSystem for atmospheric physics |
 
+### Navigation & Motion
+
+| System | Purpose |
+|---|---|
+| `NavigationSystem` | Moves `NavMeshAgent` entities along NavMesh paths and authored waypoints |
+| `SignalMotionSystem` | Drives `SignalTrack` / `SignalSpin` / `SignalSwitch` from `Signals` channels; register before `Transform3DSystem` |
+| `PosePlayerSystem` | Plays `PosePlayer` clips onto bound figure parts; register before `Transform3DSystem` |
+
 ### Transform & Hierarchy
 
 | System | Purpose |
@@ -49,6 +66,7 @@ Systems own cross-entity logic. They iterate components across multiple entities
 |---|---|
 | `InputMapSystem` | Processes input bindings and dispatches input actions |
 | `AudioSystem` | Manages audio playback, stops sources on entity destroy |
+| `AudioListenerSystem` | Keeps the spatial-audio listener on the active 3D camera |
 
 ## Custom Systems
 
@@ -79,14 +97,19 @@ class DamageSystem extends AbstractSystem
 
 ## System Phases
 
-Systems execute in defined phases via the `SystemPhase` enum:
+Every system has an `update(World $world, float $dt)` and a `render(World $world)` method; within each, systems run in the order they were added. `World::addSystem()` takes an optional `SystemPhase` that only matters when the engine runs threaded subsystems (`ext-parallel`):
 
 | Phase | When | Typical use |
 |---|---|---|
-| `PreUpdate` | Before main update | Input processing, physics preparation |
-| `Update` | Main game logic | Gameplay systems, AI, animation |
-| `Render` | After update | Camera, renderer, UI systems |
-| `PostUpdate` | After render | Cleanup, event dispatch |
+| `SystemPhase::MainThread` (default) | Before thread results arrive | Input, camera, player movement |
+| `SystemPhase::Threaded` | Handled by the thread scheduler, skipped on the main thread | Work moved to a worker |
+| `SystemPhase::PostThread` | After thread results are applied | Transform propagation |
+
+```php
+use PHPolygon\ECS\SystemPhase;
+
+$world->addSystem(new Transform3DSystem(), SystemPhase::PostThread);
+```
 
 ## Naming Convention
 

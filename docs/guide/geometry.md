@@ -9,6 +9,7 @@ use PHPolygon\Geometry\BoxMesh;
 use PHPolygon\Geometry\CylinderMesh;
 use PHPolygon\Geometry\SphereMesh;
 use PHPolygon\Geometry\PlaneMesh;
+use PHPolygon\Geometry\WedgeMesh;
 use PHPolygon\Geometry\MeshRegistry;
 
 MeshRegistry::register('box_1x1x1', BoxMesh::generate(1.0, 1.0, 1.0));
@@ -18,18 +19,6 @@ MeshRegistry::register('plane', PlaneMesh::generate(10.0, 10.0));
 MeshRegistry::register('wedge', WedgeMesh::generate(peakZ: 1.5));
 ```
 
-## Composite Geometry
-
-Build complex structures from code:
-
-```php
-MeshRegistry::register('building_hq', BuildingMesh::generate(
-    floors: 4,
-    width: 6.0,
-    depth: 5.0,
-    style: BuildingStyle::Industrial,
-));
-```
 
 ## Composite Generators
 
@@ -142,11 +131,11 @@ When the same mesh appears many times, use `DrawMeshInstanced` for a single GPU 
 foreach ($this->buildingLayout() as $i => $pos) {
     $b->entity("Building_{$i}")
         ->with(new Transform3D(position: $pos))
-        ->with(new MeshRenderer('building_hq', 'brick'));
+        ->with(new MeshRenderer('building_hq', 'brick', batchable: true));
 }
 ```
 
-The `Renderer3DSystem` automatically batches identical mesh+material pairs.
+Entities like these are separate `DrawMesh` commands by default. Set `batchable: true` on the `MeshRenderer` and the `Renderer3DSystem` merges what is visible of one mesh + material pair into a single instanced draw; for thousands of copies that never change, emit one `DrawMeshInstanced` yourself (see [Rendering](/guide/rendering#gpu-instancing)).
 
 ## Benefits
 
@@ -160,7 +149,7 @@ The `Renderer3DSystem` automatically batches identical mesh+material pairs.
 
 | Concept | Convention | Example |
 |---|---|---|
-| Geometry generators | `*Mesh` | `BoxMesh`, `BuildingMesh` |
+| Geometry generators | `*Mesh` | `BoxMesh`, `LatheMesh` |
 | Mesh IDs | `snake_case` | `'box_1x1x1'`, `'building_hq'` |
 | Material IDs | `snake_case` | `'stone_wall'`, `'neon_glass'` |
 
@@ -174,6 +163,8 @@ The `Renderer3DSystem` automatically batches identical mesh+material pairs.
 |---|---|---|
 | `BoxMesh::generate()` | `width`, `height`, `depth` | Axis-aligned box (24 vertices, 36 indices) |
 | `CylinderMesh::generate()` | `radius`, `height`, `segments` | Cylinder |
-| `SphereMesh::generate()` | `radius`, `widthSegs`, `heightSegs` | UV sphere |
-| `PlaneMesh::generate()` | `width`, `height`, `widthSegs`, `heightSegs` | Flat plane |
+| `SphereMesh::generate()` | `radius`, `stacks`, `slices` | UV sphere |
+| `PlaneMesh::generate()` | `width`, `depth`, `subdivisions` | Flat plane in XZ |
 | `WedgeMesh::generate()` | `peakZ` | Wedge/ramp |
+| `TorusMesh`, `OctahedronMesh`, `QuadMesh` | see the class | Further primitives |
+| `EllipseLoftMesh::generate()` | `rings`, `segments`, caps | Loft through elliptical cross-sections (`LoftRing`): limbs, hulls, bottles |

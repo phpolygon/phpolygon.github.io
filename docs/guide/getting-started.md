@@ -174,7 +174,7 @@ use PHPolygon\Support\Facades\Events;
 $entity = World::createEntity();
 
 // Check input
-if (Input::isKeyPressed(GLFW_KEY_SPACE)) {
+if (Input::isKeyPressed(VIO_KEY_SPACE)) {   // key codes are GLFW-compatible; php-vio defines VIO_KEY_*
     // jump
 }
 

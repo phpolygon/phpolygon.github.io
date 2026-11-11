@@ -40,7 +40,7 @@ It is the first game built with PHPolygon and is **released on Steam**, running 
 - **Entire UI** rendered via PHPolygon's `Renderer2D`  - Vio (hardware-accelerated on Metal / D3D11 / D3D12 / Vulkan) with NanoVG/OpenGL fallback, no HTML, no browser
 - **Visual Regression Testing** with PHPolygon's `GdRenderer2D` + `VisualTestCase`
 - **Standalone executable** built with PHPolygon's PHAR build pipeline (embedded PHP runtime)
-- **Mod support** via PHPolygon's `ModLoader` system
+- **Mod support** through the open `mods/` directory next to the game (`PHPOLYGON_PATH_MODS`)
 - Game logic, UI, and scenes are 100% PHP  - authored with Claude Code
 
 ---
