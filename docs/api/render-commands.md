@@ -10,6 +10,7 @@ All render commands are readonly PHP value objects in `PHPolygon\Rendering\Comma
 new SetCamera(
     viewMatrix: Mat4,
     projectionMatrix: Mat4,
+    cut: bool = false,   // first frame / teleport / camera switch: temporal passes drop their history
 )
 ```
 
@@ -29,10 +30,11 @@ new SetDirectionalLight(
     direction: Vec3,
     color: Color,
     intensity: float,
+    volumetricScale: float = 1.0,  // share of this light the volumetric fog scatters
 )
 ```
 
-Up to 16 directional lights per frame.
+`VioRenderer3D` shades the first 4 directional lights of a frame, the standalone OpenGL renderer up to 16.
 
 ### AddPointLight
 
@@ -42,10 +44,39 @@ new AddPointLight(
     color: Color,
     intensity: float,
     radius: float,
+    castsShadow: bool = false,
 )
 ```
 
-Up to 8 point lights per frame.
+`Renderer3DSystem` emits the point lights whose sphere of influence touches the view, nearest first, capped at `Renderer3DSystem::MAX_POINT_LIGHTS` (8). A game that adds the command itself can go further: `VioRenderer3D` shades up to 512 point lights through a world light grid on backends that support it and the nearest 8 elsewhere.
+
+### AddSpotLight
+
+```php
+new AddSpotLight(
+    position: Vec3,
+    direction: Vec3,
+    color: Color,
+    intensity: float,
+    range: float,
+    angle: float,
+    penumbra: float,
+    castsShadow: bool = false,
+)
+```
+
+### AddRectLight
+
+```php
+new AddRectLight(
+    center: Vec3,
+    axisX: Vec3,     // half extent along the rectangle's width
+    axisY: Vec3,     // half extent along its height
+    color: Color,
+    intensity: float,
+    range: float,
+)
+```
 
 ### DrawMesh
 
@@ -54,6 +85,10 @@ new DrawMesh(
     meshId: string,
     materialId: string,
     modelMatrix: Mat4,
+    excludeFromGbuffer: bool = false,
+    prevModelMatrix: ?Mat4 = null,  // last frame's matrix of a moved entity (motion vectors), set by Renderer3DSystem
+    castShadows: bool = true,
+    params: ?array = null,          // three floats for the material's shader snippet
 )
 ```
 
@@ -131,16 +166,19 @@ new SetWaveAnimation(
 new SetWind(
     direction: Vec3 = new Vec3(0.0, 0.0, 1.0),
     intensity: float = 0.5,
+    foliageMotion: float = 1.0,
+    foliageFadeStart: float = 100.0,  // distance at which foliage sway starts to fade out
+    foliageFadeEnd: float = 130.0,
 )
 ```
 
-Sets global wind direction + intensity for the frame. Drives procedural cloth (`Material::cloth(...)`) and any future wind-driven effects (foliage, particles). When `intensity == 0` the cloth-anchored vertices remain fully still.
+Sets global wind direction + intensity for the frame. Drives procedural cloth (`Material::cloth(...)`) and foliage sway. When `intensity == 0` the cloth-anchored vertices remain fully still.
 
 ### SetSnowCover
 
 ```php
 new SetSnowCover(
-    coverage: float,  // 0 = no snow, 1 = full snow accumulation
+    cover: float = 0.0,  // 0 = no snow, 1 = full snow accumulation
 )
 ```
 
@@ -148,7 +186,9 @@ new SetSnowCover(
 
 ```php
 new SetGroundWetness(
-    wetness: float,  // 0 = dry, 1 = soaked
+    rainWetness: float,        // 0 = dry, 1 = soaked
+    raining: float = 0.0,      // how hard it rains right now (rain rings on puddles)
+    dryBelowY: ?float = null,  // world height below which nothing gets wet (interiors, caves)
 )
 ```
 
@@ -223,6 +263,54 @@ new SetFieldtracingProbes(
 ```
 
 Backends without 3D-texture support ignore it and fall back to the analytic hemisphere ambient.
+
+### DrawOutline
+
+```php
+new DrawOutline(
+    meshId: string,
+    modelMatrix: Mat4,
+    color: Color,
+    widthPx: float = 3.0,
+)
+```
+
+Screen-space outline, drawn after the scene. The `Outline` component with `OutlineSystem` emits it for you.
+
+### SetShaderParameter / SetShaderTexture
+
+```php
+new SetShaderParameter(name: string, value: int|float|array)
+new SetShaderTexture(name: string, textureId: ?string)
+```
+
+Set a uniform or sampler that a game declared for its own shader snippets (`ProcModeShaderRegistry::declareUniform()` / `declareSampler()`) or that a fullscreen pass names. Both are sticky until set again.
+
+### SetImageLook
+
+```php
+use PHPolygon\Rendering\PostProcess\ImageLook;
+
+new SetImageLook(look: ?ImageLook)  // null = the engine's defaults
+```
+
+The image chain of the frame: exposure and auto exposure, tonemapper (`Tonemapper::Aces` or `Tonemapper::Sigmoid`), bloom, colour LUTs, grain, sharpening and more - see the `ImageLook` constructor.
+
+### SetFocusRegion
+
+```php
+new SetFocusRegion(
+    left: float = 0.0, top: float = 0.0, right: float = 0.0, bottom: float = 0.0,
+    feather: float = 0.04,
+    active: bool = true,
+)
+```
+
+The screen region the accessibility option `focusDim` keeps bright (a terminal, a dialogue).
+
+### Further commands
+
+The engine's own systems emit these; games rarely construct them by hand: `SetSky` (procedural sky with sun, moon, clouds, lightning, aurora), `SetBakedLight` (light volume baked from the SDF), `SetGrass`, `SetSandstorm`, `SetSeasonGrade`, `SetComfortVignette`, `DrawLightCone`, `DrawWorldText`, `ClearDepthBuffer`. Their constructors document every parameter.
 
 ## RenderCommandList
 

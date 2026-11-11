@@ -9,10 +9,10 @@ Game Code / Scene
       ↓  (builds)
 RenderCommandList        ← pure PHP data, no GPU calls
       ↓  (executed by)
-┌──────────────────┬──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│  VioRenderer3D   │ OpenGLRenderer3D │ MetalRenderer3D  │ VulkanRenderer3D │  NullRenderer3D  │
-│   (primary)      │   (fallback)     │ (macOS/MoltenVK) │    (planned)     │ (headless/tests) │
-└──────────────────┴──────────────────┴──────────────────┴──────────────────┴──────────────────┘
+┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+│  VioRenderer3D   │ OpenGLRenderer3D │ VulkanRenderer3D │  NullRenderer3D  │
+│   (primary)      │   (fallback)     │   (standalone)   │ (headless/tests) │
+└──────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
 Game code never touches GPU APIs directly. The `Renderer3DSystem` collects `MeshRenderer` + `Transform3D` components and builds a `RenderCommandList` that the active backend executes.
@@ -21,12 +21,12 @@ Game code never touches GPU APIs directly. The `Renderer3DSystem` collects `Mesh
 
 ```
 RenderContextInterface           ← base: beginFrame, endFrame, clear, setViewport
-├── Renderer2DInterface          ← NanoVG backend for 2D games (production)
-└── Renderer3DInterface          ← 3D backend (OpenGL, Metal, or Vulkan)
+├── Renderer2DInterface          ← 2D backend (VioRenderer2D, or NanoVG Renderer2D as fallback)
+└── Renderer3DInterface          ← 3D backend (VioRenderer3D, or OpenGL / Vulkan standalone)
 ```
 
 ::: info
-The **2D renderer** is production-ready with VIO as the primary backend and NanoVG/OpenGL as fallback - [Code Tycoon](https://store.steampowered.com/app/4347780/Code_Tycoon/) (released on Steam) ships with it. The **3D renderer** is in active development, with [Code Rescue](https://store.steampowered.com/app/4852040/Code_Rescue/) as the first 3D game built on it.
+The **2D renderer** is production-ready with VIO as the primary backend and NanoVG/OpenGL as fallback - [Code Tycoon](https://store.steampowered.com/app/4347780/Code_Tycoon/) (released on Steam) ships with it. The **3D renderer** runs through `VioRenderer3D` on every platform; [Code Rescue](https://store.steampowered.com/app/4852040/Code_Rescue/) is the first 3D game built on it.
 :::
 
 ## 3D Render Backends
@@ -72,7 +72,7 @@ The engine auto-detects available backends at startup:
 
 ```
 if extension_loaded('vio') && !headless:
-    → VioWindow, VioInput, VioRenderer2D, VioRenderer3D, VioTextureManager, VioAudioBackend
+    → VioMainWindow, VioInput, VioRenderer2D, VioRenderer3D, VioTextureManager, VioAudioBackend
     → vio_create('auto') picks the platform's best backend (EngineConfig::$vioBackend overrides):
       Metal on macOS, D3D12 / D3D11 on Windows, Vulkan on Linux, OpenGL as fallback
 else:
@@ -94,8 +94,9 @@ When php-vio is available, it is always preferred for all rendering, input, and 
 $r2d->addFallbackFont('inter-semibold', 'noto-sans-sc');
 $r2d->addFallbackFont('inter-semibold', 'noto-sans-kr');
 
-// Pre-bake the font atlas at commonly used sizes to avoid runtime stutter
-$r2d->preloadFonts([15.0, 26.0]);
+// Pre-rasterise the glyph atlases of loaded fonts at commonly used sizes
+// (one worker thread per atlas) to avoid stutter on first use
+$r2d->warmFonts(['inter-semibold', 'noto-sans-sc'], [15.0, 26.0]);
 
 // Remove all fallback registrations (e.g. when switching to a non-CJK locale)
 $r2d->clearFallbackFonts();
@@ -127,8 +128,9 @@ Commands are plain PHP value objects appended to the `RenderCommandList`:
 |---|---|
 | `SetCamera` | View + projection matrices |
 | `SetAmbientLight` | Ambient color + intensity |
-| `SetDirectionalLight` | Directional light (up to 16) |
-| `AddPointLight` | Point light (up to 8) |
+| `SetDirectionalLight` | Directional light (`VioRenderer3D` shades the first 4 per frame) |
+| `AddPointLight` | Point light (`Renderer3DSystem` keeps the 8 nearest in view; `VioRenderer3D` takes up to 512 through its light grid where the backend supports it) |
+| `AddSpotLight` / `AddRectLight` | Spot light with cone and penumbra / rectangular area light |
 | `DrawMesh` | Single mesh draw |
 | `DrawMeshInstanced` | GPU-instanced mesh (many copies, one draw call) |
 | `SetSkybox` | Cubemap skybox |
@@ -140,6 +142,10 @@ Commands are plain PHP value objects appended to the `RenderCommandList`:
 | `SetSnowCover` | Per-frame snow accumulation factor (0..1) |
 | `SetGroundWetness` | Per-frame rain wetness factor (0..1) |
 | `SetEnvironmentMap` | PBR environment map |
+| `DrawOutline` | Screen-space outline around a mesh |
+| `SetShaderParameter` / `SetShaderTexture` | Uniforms and samplers a game declared for its own shader snippets |
+
+The full list with every parameter is in the [Render Commands reference](/api/render-commands).
 
 ## Materials
 
@@ -185,8 +191,8 @@ Both pattern systems are evaluated in-shader from a string id - **no texture upl
 
 | Field | Pattern set |
 |---|---|
-| `normalPattern` | `bricks`, `bumps`, `orange_peel`, `hammered`, `hexagons`, `wood_grain`, `scratches`, `cracked`, `fbm_noise` |
-| `surfacePattern` | `worn`, `rusted`, `brushed`, `mossy` |
+| `normalPattern` | `bricks`, `bumps`, `orange_peel`, `hammered`, `hexagons`, `wood_grain`, `scratches`, `cracked`, `noise`, `skin`, `cobblestone`, `roof_tiles` (constants on `NormalPattern`) |
+| `surfacePattern` | `worn_paint`, `rust`, `brushed_metal`, `polished_rings`, `skin`, `marble`, `sandstone` (constants on `SurfacePattern`) |
 
 ```php
 MaterialRegistry::register('castle_wall', new Material(
@@ -194,7 +200,7 @@ MaterialRegistry::register('castle_wall', new Material(
     roughness: 0.85,
     normalPattern: 'bricks',
     normalScale: 4.0,
-    surfacePattern: 'worn',
+    surfacePattern: 'worn_paint',
     surfaceScale: 2.0,
     surfaceIntensity: 0.6,
 ));
@@ -233,7 +239,7 @@ $commandList->add(new SetWind(
 ));
 ```
 
-The cloth animation runs in the vertex stage and is byte-identical across the OpenGL, Vio, and Metal backends (locked by `ClothShaderConsistencyTest`). Real physical cloth (Bullet SoftBody / GPU compute solver) is documented in [`docs/rfcs/compute-pipeline.md`](https://github.com/phpolygon/phpolygon/blob/main/docs/rfcs/compute-pipeline.md).
+The cloth animation runs in the vertex stage; its formula is kept identical between the OpenGL and Vio shader sources (locked by `ClothShaderConsistencyTest`). Real physical cloth (Bullet SoftBody / GPU compute solver) is documented in [`docs/rfcs/compute-pipeline.md`](https://github.com/phpolygon/phpolygon/blob/main/docs/rfcs/compute-pipeline.md).
 
 ## GPU Instancing
 
@@ -248,6 +254,8 @@ $commandList->add(new DrawMeshInstanced('building', 'brick', $matrices, isStatic
 ```
 
 The `isStatic` flag caches the matrix buffer across frames for maximum performance.
+
+For repeating static meshes that are ordinary entities, set `MeshRenderer::$batchable`: after culling, `Renderer3DSystem` merges what is left of one mesh + material into a single `DrawMeshInstanced`. Entities that moved, transparent materials and single survivors keep their own `DrawMesh`.
 
 ## Material Presets
 

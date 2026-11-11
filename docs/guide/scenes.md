@@ -22,6 +22,11 @@ use PHPolygon\Math\Vec3;
 
 class MainScene extends Scene
 {
+    public function getName(): string
+    {
+        return 'main';
+    }
+
     public function build(SceneBuilder $b): void
     {
         // Sun light
@@ -50,8 +55,9 @@ class MainScene extends Scene
 ```php
 use PHPolygon\Support\Facades\Scenes;
 
-// Load by class
-Scenes::loadScene(MainScene::class);
+// Register the class under a name once, then load by that name
+Scenes::register('main', MainScene::class);
+Scenes::loadScene('main');
 
 // Scene lifecycle events
 Events::listen(SceneLoaded::class, function (SceneLoaded $e) {
@@ -69,7 +75,10 @@ Scenes can be loaded in two modes:
 | `LoadMode::Additive` | Loads the new scene on top of the current one |
 
 ```php
-Scenes::loadScene(OverlayScene::class, LoadMode::Additive);
+use PHPolygon\Scene\LoadMode;
+
+Scenes::register('overlay', OverlayScene::class);
+Scenes::loadScene('overlay', LoadMode::Additive);
 ```
 
 ## Scene Lifecycle Events
@@ -88,8 +97,12 @@ Scenes::loadScene(OverlayScene::class, LoadMode::Additive);
 The `SceneManager` handles scene lifecycle:
 
 ```php
-$engine->scenes->loadScene(MainScene::class);    // Load and build
-$engine->scenes->current();                  // Get active scene
+$engine->scenes->register('main', MainScene::class);
+$engine->scenes->loadScene('main');          // Load and build
+$engine->scenes->getActiveScene();           // ?Scene
+$engine->scenes->getActiveSceneName();       // 'main'
+$engine->scenes->isLoaded('main');           // bool
+$engine->scenes->unloadScene('main');
 ```
 
 ## Prefabs
@@ -116,11 +129,63 @@ class TreePrefab extends AbstractPrefab
     }
 }
 
-// Register
-PrefabRegistry::register(TreePrefab::class);
+// Use it in a scene by class...
+$builder->prefab(TreePrefab::class, 'Tree_1');
+
+// ...or by its registered name through a PrefabRegistry
+$registry = new PrefabRegistry();
+$registry->register(TreePrefab::class);
+$builder->setPrefabRegistry($registry);
+$builder->prefabByName('tree', 'Tree_2');
 ```
 
+For prefabs with a fluent modifier chain (`->suv()->paintedWith(...)->place(...)`), extend `PHPolygon\Scene\Prefab` instead - see [Prefabs](/guide/prefabs).
+
 PHPolygon includes built-in prefab builders for doors (`DoorBuilder`), furniture (`CrateBuilder`, `TableBuilder`, `ShelfBuilder`, etc.), and roofs (`RoofBuilder` with flat/gable/hip/mansard/shed/thatched variants).
+
+## Layout Sockets
+
+When a room, hall or yard is built from independent parts (walls, ceiling, doors, lights, furniture), each part can publish where the others may attach or must keep clear - as plain data from `PHPolygon\Scene\Layout` instead of guessed coordinates:
+
+| Class | Describes |
+|---|---|
+| `Opening(name, center, normal, width, height, kind)` | A door, window or pass-through. `center` is the middle of the bottom edge, `normal` the direction you pass through. `top()`, `middle()`, `clearance($depth)` (the `Zone` to keep free) |
+| `MountPoint(name, position, normal, kind)` | One attachment point on a surface, `normal` pointing away from it |
+| `MountLine(name, start, end, normal, kind)` | A run along a surface (rail, tray, screen strip). `pointAt($t)`, `midpoint()`, `length()` |
+| `Zone(name, min, max, kind)` / `Zone::around(name, center, halfExtents, kind)` | An axis-aligned box (walk zone, keep-out, footprint). `contains()`, `overlaps()`, `expanded($m)` |
+
+```php
+use PHPolygon\Math\Vec3;
+use PHPolygon\Scene\Layout\Opening;
+use PHPolygon\Scene\Layout\Zone;
+
+// Published by the wall builder
+$door = new Opening('door_north', new Vec3(0, 0, -5), new Vec3(0, 0, -1), width: 1.2, height: 2.1, kind: 'door');
+
+// Used by the furniture builder: nothing may stand in front of the door
+$keepFree = $door->clearance(1.5);
+$table = Zone::around('table', new Vec3(0, 0.4, -4.2), new Vec3(0.8, 0.4, 0.5));
+if ($keepFree->overlaps($table)) {
+    // move the table
+}
+```
+
+All four are immutable, carry a free `kind` tag the game chooses, and live in the publisher's space (usually room-local); `transformed(Mat4)` moves any of them into another space.
+
+### Placing a group at an angle
+
+`SceneFrame` lets you build a room as if its origin were (0, 0, 0) and its axes the world's, then place it rotated:
+
+```php
+use PHPolygon\Scene\SceneFrame;
+
+$mark = SceneFrame::mark($builder);                  // remember where the group starts
+buildRoom($builder);                                 // declare entities in local coordinates
+$frame = new SceneFrame(new Vec3(40, 0, 12), deg2rad(30.0));
+$frame->place($builder, $mark);                      // move and turn every top-level entity declared since the mark
+```
+
+Each entity gets the turn in its own rotation (children follow their parent), so box colliders keep colliding as oriented boxes. Sockets that came out in local space go through `$frame->point()`, `direction()` and `yaw()`.
 
 ## Scene Transpiler
 

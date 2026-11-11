@@ -44,7 +44,7 @@ Games are built in separate repositories and require `phpolygon/phpolygon` via C
 
 Beyond rendering, PHPolygon includes:
 
-- **Audio** - multi-channel audio with Master/Music/SFX/UI/Voice channels, ducking, a stem player, offline DSP and codecs (WAV, FLAC, Ogg Opus, Ogg Vorbis)
+- **Audio** - multi-channel audio with Master/Music/SFX/UI/Voice channels, spatial 3D sources, ducking, a stem player, offline DSP and codecs (WAV, FLAC, Ogg Opus, Ogg Vorbis)
 - **Speech synthesis** - offline voice lines from the translation files with cloned voices ([Speech Synthesis](/guide/speech))
 - **Physics** - 2D and 3D collision detection with BVH acceleration, rigid bodies, character controllers, hinge and linear joints, raycasts and line-of-sight queries
 - **Networking** - transports (Steam relay, TCP sockets, loopback), host/client sessions and a serializable command bus
@@ -52,7 +52,10 @@ Beyond rendering, PHPolygon includes:
 - **Scene management** - scene loading (single/additive), lifecycle events, prefab registry, JSON scene transpiler
 - **Input mapping** - action and axis bindings for keyboard, mouse, and gamepad, with player rebinding
 - **Environment** - day/night cycle, weather (rain/snow/storm), seasons, atmospheric simulation, wind
-- **Prefabs** - procedural builders for doors, furniture, roofs, palm trees
+- **Prefabs** - procedural builders for doors, furniture, roofs, palm trees, plus layout sockets so independently built level parts fit together
+- **Vegetation** - a plant family generator with growth stages and LODs, instanced foliage, grass blades near the camera
+- **Navigation** - NavMesh generation, A* pathfinding and agents
+- **Graphics settings** - persisted per player, first-launch calibration, adaptive quality, accessibility options, hardware capabilities ([Graphics Settings](/guide/graphics-settings))
 - **Threading** - parallel subsystems for physics, audio, AI, and asset streaming via `ext-parallel`
 - **Localization** - locale management with fallback chains, start language from Steam or the system
 - **UI** - immediate-mode and retained-mode widget toolkit

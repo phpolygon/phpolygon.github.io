@@ -26,7 +26,7 @@ features:
   - title: Procedural Geometry
     details: Meshes generated programmatically. Composite generators (Lathe, Sweep, SpokedRim), an SVG-to-PHP pipeline that turns 2D outlines into committable mesh classes, plus a one-time OBJ/STL/glTF import bake in the editor.
   - title: Visual Quality Stack
-    details: "PBR + procedural normal/surface patterns, AO, ACES tone mapping, color grading, vignette, vol-fog, area lights, GPU particles, CSM shadows, SSR, TAA and temporal upscaling (TAAU, FSR 3, DLSS). Primary path: php-vio on Metal, D3D11/D3D12, Vulkan and OpenGL."
+    details: "PBR + procedural normal/surface patterns, AO, tone mapping, color grading, volumetric fog, spot / point / area lights with shadows, GPU particles, CSM shadows, SSR, TAA and temporal upscaling (TAAU, FSR 3, DLSS), optional ray tracing and mesh shaders, accessibility options. Primary path: php-vio on Metal, D3D11/D3D12, Vulkan and OpenGL."
   - title: Procedural Cloth + Vehicle Prefabs
     details: Vertex-shader cloth sway driven by SetWind. Vehicle prefab system with Sedan/SUV/Cabrio/Pickup/Compact variants composed from procedural primitives.
   - title: Multi-Backend Rendering

@@ -50,7 +50,7 @@ Beyond editing, the editor can **scaffold a new game project** (`create_game_pro
 | Layer | Technology |
 |---|---|
 | Desktop shell | NativePHP 2.x (Electron) |
-| Backend | Laravel 11 (PHP 8.2+) |
+| Backend | Laravel 13 (PHP 8.2+) |
 | Frontend | Vue 3 + TypeScript + Pinia |
 | Styling | Tailwind CSS (dark theme) |
 | Icons | Lucide |
@@ -242,5 +242,5 @@ The editor is a **consumer** of the engine, not part of it:
 - The engine (`phpolygon/phpolygon`) is a Composer dependency of the editor
 - The editor reads engine component classes via reflection at runtime
 - Scene files are PHP code (canonical) ↔ JSON (editor interchange)
-- The editor's viewport is a **three.js WebGL preview** for authoring, not the engine's renderer  - the shipping game renders through the engine's own backends (Vio / OpenGL / Vulkan / Metal)
+- The editor's viewport is a **three.js WebGL preview** for authoring, not the engine's renderer  - the shipping game renders through the engine's own backends (php-vio: Metal, D3D11/D3D12, Vulkan or OpenGL)
 - All authored content (scenes, meshes, materials, shaders, audio, UI) is written back as PHP code and asset files the engine consumes directly

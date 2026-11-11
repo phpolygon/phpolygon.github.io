@@ -1,6 +1,6 @@
 # Performance Profiling
 
-PHPolygon ships with a layered profiling setup tailored for game-engine workloads. Most engine work is CPU-bound on the PHP side, so the tools focus on PHP frame time and ECS hot paths rather than GPU profiling.
+PHPolygon ships with a layered profiling setup tailored for game-engine workloads. Most engine work is CPU-bound on the PHP side, so the tools focus on PHP frame time and ECS hot paths; GPU time per render pass and a hitch log for shipped games complete the picture.
 
 ## Tools Overview
 
@@ -11,6 +11,7 @@ PHPolygon ships with a layered profiling setup tailored for game-engine workload
 | **PHPBench** | Micro-benchmarks for hot leaf functions (Mat4, Quaternion) | `vendor/bin/phpbench` |
 | **Custom benchmark runner** | Frame-loop scenarios over the full Engine | `php benchmarks/run.php <scenario>` |
 | **F3 dev overlay** | Live FPS, frame time, GC, top sections | `EngineConfig::$devMode` + F3 |
+| **Frame spike recorder** | Always-on hitch log with causes and session percentiles | on by default in a visible window |
 
 SPX and Excimer are PHP C-extensions and cannot be installed via Composer. Use the bundled installer:
 
@@ -51,6 +52,40 @@ The engine ships with markers around every cross-system hot path. Section names 
 | `physics.tick` | `Physics3DSystem::update()` |
 
 Add new markers around any cross-system or per-frame work that you expect to be hot. Do **not** instrument tight inner loops (per-vertex, per-pixel) – the marker overhead distorts the measurement.
+
+### GPU time per render pass
+
+`render3d.gpu` is the GPU time of the whole frame. While a profiler is active, `VioRenderer3D` also marks its pass boundaries and records `render3d.gpu.<pass>` per frame (`shadow`, `gbuffer`, `ssao`, `sky`, `opaque`, `transparent`, `composite`, `ssr`, `taa` or `upscale`, `bloom`, `post`, ...), also readable through `gpuPassTimesMs()`. A pass only appears when it really ran; the values follow the last completed frame. It needs a php-vio backend with `VIO_FEATURE_GPU_TIMESTAMP`; without an active profiler no marks are set at all.
+
+## Frame Spike Recorder
+
+`PHPolygon\Runtime\FrameSpikeRecorder` finds hitches in shipped games. It needs no environment variable: `$engine->frameSpikes` runs in every game with a visible window and writes to `game.log`. A frame without a spike writes nothing; a spike writes one line with its cause, and the session ends with percentiles:
+
+```
+[frame-spike] #1 t=2.2s frame=64.66ms limit=33.00ms median=0.26ms cause=update update=63.98ms ticks=1 render=0.30ms present=0.33ms ...
+[frame-session] frames=8999 played=3.6s p50=0.50ms p95=0.50ms p99=1.00ms max=273.82ms spikes=1 written=1 suppressed=0 causes=update:1
+```
+
+A frame counts as a spike when it takes at least `max(floorMs, medianFactor × median)` of the recent frames. `EngineConfig::$frameSpikes` controls it: `null` is the default described above (off in headless and offscreen runs), `false` switches it off, an instance sets own thresholds or a sink:
+
+```php
+use PHPolygon\Runtime\FrameSpikeRecorder;
+
+$config = new EngineConfig(frameSpikes: new FrameSpikeRecorder(
+    floorMs: 33.0, medianFactor: 2.5, warmupFrames: 30,
+));
+
+// Game context for a written line (only called when a line is written)
+$engine->frameSpikes?->addContext(fn () => ['area' => $area]);
+
+// Name work that may explain a hitch; with a duration it can become the cause
+FrameSpikeRecorder::note('save', 1, $elapsedNs);
+
+// Loading screens are not hitches
+$engine->frameSpikes?->suspend();
+// ... load ...
+$engine->frameSpikes?->resume();
+```
 
 ## F3 Dev Overlay
 

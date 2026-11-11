@@ -113,6 +113,35 @@ The `UISystem` is an ECS system that manages UI layers and widget rendering. Reg
 $world->addSystem(new UISystem($renderer, $input));
 ```
 
+## Wrapping Buttons
+
+`button()` draws one line at style height. For labels that must survive long translations use `wrapButton()`: the label wraps (CJK breaks between characters), the button grows per extra line and nothing is cut. `fitButtonLabels()` finds one shared font size and line count for a row of equal buttons, `layoutButtonRow()` sizes a row to its labels.
+
+## Resolution-Independent Panels
+
+A panel laid out for a 1080-line screen is tiny on 4K. Instead of a magnifying transform (which stretches the glyph atlas), draw it through a scaling pair that shares one `UIScale`:
+
+```php
+use PHPolygon\Rendering\ScaledRenderer2D;
+use PHPolygon\Runtime\ScaledInput;
+use PHPolygon\UI\UIScale;
+
+$scale = new UIScale();
+$renderer = new ScaledRenderer2D($engine->renderer2D, $scale);
+$input = new ScaledInput($engine->input, $scale);
+
+// per frame, while rendering:
+$scale->set(UIScale::forScreen($engine->renderer2D->getHeight(), userFactor: $playerChoice));
+[$previousRenderer, $previousInput] = $ui->useBackends($renderer, $input);
+try {
+    drawPanel($renderer, $ui);   // lay out in logical 1080-line pixels
+} finally {
+    $ui->useBackends($previousRenderer, $previousInput);
+}
+```
+
+`ScaledRenderer2D` multiplies every position, size, line width and font size by the factor (text is requested at the larger size, so it stays crisp) and reports logical sizes; `ScaledInput` divides the pointer position. `UIScale::forScreen()` returns `max(1, height / 1080) × userFactor`, snapped to eighths (1440 → 1.375, 2160 → 2).
+
 ## Dropdown Overlays
 
 Dropdown option lists are rendered as deferred overlays via `flushOverlays()`.

@@ -50,15 +50,17 @@ class Lantern extends Prefab
 
     public function build(SceneBuilder $builder): EntityDeclaration
     {
-        $root = $builder->declare('Lantern')
-            ->with(new Transform3D(position: $this->position ?? new Vec3(0, 0, 0)));
+        $root = $builder->entity($this->getInstanceName())
+            ->with(new Transform3D(
+                position: $this->getPosition(),
+                rotation: $this->getRotation(),
+                scale: $this->getScale(),
+            ));
 
-        $root->addChild(
-            $builder->declare('Glass')
-                ->with(new Transform3D(position: new Vec3(0, $this->height, 0)))
-                ->with(new MeshRenderer('lantern_glass', $this->glassMaterial))
-                ->with(new PointLight(color: new Color(1.0, 0.9, 0.6), intensity: 1.5, radius: 8.0))
-        );
+        $root->child('Glass')
+            ->with(new Transform3D(position: new Vec3(0, $this->height, 0)))
+            ->with(new MeshRenderer('lantern_glass', $this->glassMaterial))
+            ->with(new PointLight(color: new Color(1.0, 0.9, 0.6), intensity: 1.5, radius: 8.0));
 
         return $root;
     }
@@ -108,10 +110,12 @@ Car::demoLineup($builder, origin: new Vec3(0, 0, 0), spacing: 7.5);
 $builder->spawn(new Car())
     ->suv()
     ->paintedWith('car_paint_yellow')   // body
-    ->withGlass('glass_smoked')         // windscreen + side windows
-    ->withRims('chrome_polished')       // wheel rims
+    ->glassWith('glass_smoked')         // windscreen + side windows
+    ->rimsOf('chrome_polished')         // wheel rims
     ->place(new Vec3(0, 0, 0));
 ```
+
+The other slots follow the same pattern: `wheelsOf()`, `bumpersOf()`, `headlightsAs()`, `taillightsAs()`, `platesAs()`, `mirrorsOf()`, `grilleOf()`, `doorHandlesOf()`, `exhaustOf()`.
 
 ### Per-Hook Subclassing
 
@@ -134,9 +138,9 @@ Override `bodyDimensions()`, `bodyProfile()`, `wheelRadius()`, `wheelWidth()`, `
 
 ## Style Factories
 
-`Car::styleSedan()`, `styleSuvCabrio()`, `styleRedPickup()`, `styleYellowCompact()` are static factories that return a fully configured `Car` instance. Subclasses inherit them automatically (`Car` returns `static`).
+`Car::styleSedan()`, `styleSuvCabrio()`, `styleRedPickup()`, `styleYellowCompact()` are static factories that return a fully configured `Car` instance. Subclasses inherit them automatically (`Car` returns `static`). Like any prefab instance they go through `spawn()` before `place()`:
 
 ```php
-$sedan = Car::styleSedan()->place(new Vec3(0, 0, 0));
-$suv   = Car::styleSuvCabrio()->place(new Vec3(8, 0, 0));
+$sedan = $builder->spawn(Car::styleSedan())->place(new Vec3(0, 0, 0));
+$suv   = $builder->spawn(Car::styleSuvCabrio())->place(new Vec3(8, 0, 0));
 ```

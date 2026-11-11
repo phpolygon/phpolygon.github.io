@@ -19,7 +19,7 @@ $player->attach(new CharacterController3D(
 ));
 ```
 
-The controller tracks grounded state, supports walking/falling/seated/mounted/animated states, and can be coupled to other entities (vehicles, mounts).
+The controller tracks grounded state, supports walking/falling/seated/mounted/animated states, and can be coupled to other entities (vehicles, mounts). `stepHeight` works on every collider type. `groundEntityId` names the entity the character stands on (null in the air and on the bare ground plane); `PHPolygon\Physics\GroundProbe::under($world, $controller)` turns it into a `GroundHit` with the mesh and material underfoot - the basis for footstep sounds per surface.
 
 ### Colliders
 
@@ -70,6 +70,26 @@ $barrel->attach(new RigidBody3D(
 | `LinearJoint` | Prismatic joint for sliding doors. Parameters: `slideAxis`, `minPosition`, `maxPosition`, `damping` |
 
 The `DoorSystem` automatically updates entities with these joints.
+
+### Raycasts and Line of Sight
+
+`PHPolygon\Physics\Raycaster3D` answers two kinds of question:
+
+```php
+use PHPolygon\Math\Ray;
+use PHPolygon\Math\Vec3;
+use PHPolygon\Physics\Raycaster3D;
+
+$raycaster = new Raycaster3D();
+
+// Nearest hit against box colliders: entityId, point, normal, distance (or null)
+$hit = $raycaster->raycast($world, new Ray($origin, new Vec3(0, 0, -1)), maxDistance: 50.0);
+
+// Occlusion only: is anything solid between these two points?
+$blocked = $raycaster->segmentBlocked($world, $eye, $target);
+```
+
+`raycast()` / `raycastAll()` test box colliders and work without a `Physics3DSystem`. `segmentBlocked()` is meant for per-frame use (line of sight, camera checks): it tests mesh colliders and boxes against the data `Physics3DSystem` already caches, ignores triggers and heightmaps, and does not see a collider the physics system has not processed yet.
 
 ## 2D Physics
 

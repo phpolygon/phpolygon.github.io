@@ -85,8 +85,8 @@ Shaders are written in GLSL 4.10. The same GLSL source is used across all backen
 |---|---|
 | **OpenGL 4.1** | GLSL loaded and compiled at runtime via `glCreateShader` |
 | **Direct3D 11/12** | GLSL → SPIR-V → HLSL via SPIRV-Cross (php-vio) |
-| **Metal (macOS)** | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
-| **Vulkan** | GLSL compiled to SPIR-V at build time via `glslangValidator` |
+| **Metal (macOS)** | GLSL → SPIR-V → Metal Shading Language via SPIRV-Cross (php-vio) |
+| **Vulkan** | GLSL → SPIR-V via glslang (php-vio); the standalone `VulkanRenderer3D` uses SPIR-V compiled at build time with `glslangValidator` |
 
 ### Cross-Backend Conventions
 
@@ -206,13 +206,13 @@ The shader system was designed with performance testing in mind:
 Shader::use('unlit');
 
 // Measure frame time...
-$baselineMs = $clock->frameDeltaMs();
+$baselineMs = $engine->clock->getDeltaTime() * 1000.0;
 
 // Switch back to full PBR
 Shader::reset();
 
 // Measure again
-$pbrMs = $clock->frameDeltaMs();
+$pbrMs = $engine->clock->getDeltaTime() * 1000.0;
 
 // The difference is your lighting/shadow cost
 ```

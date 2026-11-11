@@ -7,6 +7,13 @@ cloned voice and written as `{output}/{locale}/{key}.flac` (44.1 kHz mono, run t
 [Chatterbox Multilingual 0.1.7](https://github.com/resemble-ai/chatterbox) (MIT), run as a Python
 worker process.
 
+Two further models can be selected with `"synthesizer"` in the `speech` block (default
+`"chatterbox"`): `"voxcpm"` (VoxCPM2 - cloning, and Voice Design: a voice from a text description
+via `phpolygon speech:design`) and `"moss"` (MOSS-TTS v1.5 - cloning only, covers among others
+Czech, Hungarian and Romanian). Set one up with `phpolygon speech:setup --synth=voxcpm` or
+`--synth=moss`. Their voices take no `exaggeration` / `cfgWeight`; VoxCPM2 needs a `reference` or
+a `params.description`, MOSS-TTS a `reference`. The rest of this page describes Chatterbox.
+
 The generated files are local build inputs, not Git content: list `output` in `.gitignore` and in
 `resources.external`.
 

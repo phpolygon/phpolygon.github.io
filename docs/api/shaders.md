@@ -50,8 +50,8 @@ All shaders are authored in GLSL. Each 3D backend handles compilation differentl
 
 | Backend | Pipeline |
 |---|---|
+| `VioRenderer3D` | GLSL handed to php-vio, which compiles it to SPIR-V and transpiles it for the active backend (HLSL for D3D11/D3D12, MSL for Metal, SPIR-V for Vulkan, GLSL for OpenGL) |
 | `OpenGLRenderer3D` | GLSL compiled at runtime via `glCreateShader` |
-| `MetalRenderer3D` | GLSL cross-compiled to Metal Shading Language via MoltenVK/SPIRV-Cross |
 | `VulkanRenderer3D` | GLSL compiled to SPIR-V at build time via `glslangValidator` |
 
 The shader system is backend-agnostic  - `ShaderRegistry` stores GLSL source paths regardless of which renderer executes them.
