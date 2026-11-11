@@ -26,6 +26,7 @@ export default defineConfig({
           items: [
             { text: 'What is PHPolygon?', link: '/guide/what-is-phpolygon' },
             { text: 'Getting Started', link: '/guide/getting-started' },
+            { text: "What's New", link: '/guide/whats-new' },
           ],
         },
         {
@@ -36,6 +37,7 @@ export default defineConfig({
             { text: 'Prefabs', link: '/guide/prefabs' },
             { text: 'Rendering', link: '/guide/rendering' },
             { text: 'Visual Quality', link: '/guide/visual-quality' },
+            { text: 'Graphics Settings', link: '/guide/graphics-settings' },
             { text: 'Shaders', link: '/guide/shaders' },
             { text: 'Procedural Geometry', link: '/guide/geometry' },
             { text: 'Physics', link: '/guide/physics' },
